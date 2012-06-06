@@ -1,4 +1,11 @@
 
+;;;;;;;;;;;;;; PROGRAM DATA
+INI_PROG  	EQU		0100H
+INT_TIM0	EQU		000BH
+INT_TIM1	EQU		001BH
+
+
+;;;;;;;;;;; DISPLAY DATA
 DATA_DISP	EQU	P1		; Porta onde esta colocado o barramento de dados do display
 EN 			EQU P3.7	; Bit EN do Display		
 RS 			EQU P3.6	; Bit R/S do Display
@@ -7,7 +14,25 @@ ORG 	0000H			; Vetor RESET
    	LJMP 	INICIO			; Pula para o inicio do programa principal
 
 
+ORG INI_PROG
+INICIO:
 
+
+MAIN_LOOP:
+
+
+
+;;;BLABLABLA
+
+
+
+
+
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+ ;;;;;;;; CONTROLE DO DISPLAY ;;;;;;;;;;;;;;;;;;;;;;;
+
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;-- Gera atraso proporcionao ao valor de R7
 ;
