@@ -104,8 +104,14 @@ BUTTON_IS_PRESSED:
 	RET
 ;;;;;;;;;;;;; FIM DA FUNÇÃO DE DEBOUNCE 
 
-	
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;; ESCREVE A TELA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+ ;;FUNÇÃO PRECISA SER FEITA
 
 
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -160,5 +166,36 @@ INICIO_LCD:
 	MOV     A,#01H                 ; LIMPA DISPLAY
 	LCALL   ESCREVE_COMANDO_LCD
 	RET
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;; DADOS NA MEMÓRIA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+INIMIGOS:;X,Y
+	DB 	96D, 63D
+	DB	75D, 63D
+	DB	54D, 63D
+	DB	31D, 63D //PRIMEIRA LINHA
+	DB 	96D, 43D
+	DB	75D, 43D
+	DB	54D, 43D
+	DB	31D, 43D //SEGUNDA LINHA
+
+
+NAVE:  ;X, Y, VIDAS
+	DB 63D, 2D, 3D
+
+TIROS:	;X,Y, DIREÇÃO
+	DB 0FFH, 0FFH, 0FFH	  ;;COMO COLOCAR VÁRIOS TIROS NESSA MATRIX DEPOIS? OU JÁ DEIXAR A MATRIX COM UM TAMANHO GRANDE?
+
 
 END
