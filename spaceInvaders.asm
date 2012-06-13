@@ -6,9 +6,8 @@ INT_TIM1	EQU		001BH
 
 
 ;;;;;;;;;;; DISPLAY DATA
-DATA_DISP	EQU	P1		; Porta onde esta colocado o barramento de dados do display
-EN 			EQU P3.7	; Bit EN do Display		
-RS 			EQU P3.6	; Bit R/S do Display
+SELECT 		BIT		00H ;SELECIONA O LADO ESQUERDO OU DIREITO DO LCD (0/1)
+BOTH		BIT		01H	;QUANDO ESTÁ EM UM INDICA QUE DEVE ESCREVER EM UM LADO DEPOIS NO OUTRO
 
 ORG 	0000H			; Vetor RESET
    	LJMP 	INICIO			; Pula para o inicio do programa principal
@@ -110,8 +109,78 @@ BUTTON_IS_PRESSED:
 ;;;;;;;; ESCREVE A TELA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  ; TRADUZ A POSIÇÃO X [DADA EM A] DE 0 A 127 PARA X DE 0 A 63 E QUAL DOS LADOS DO LCD USAR
+TRADUZ_X:
+		PUSH 1	  ;SALVA O R1
+		MOV R1, A
+		 SUBB A, #63D
+		 JC LADO_ESQUERDO
+LADO_DIREITO:
+		SETB SELECT
+		POP R1
+		RET
+LADO_ESQUERDO:
+		MOV A, R1
+		CLR SELECT
+		POP 1	;DEVOLVE O R1
+		RET
 	
- ;;FUNÇÃO PRECISA SER FEITA
+ ;POSIÇÃO X DO INICIO DADA EM A E O SELECT DEFINE QUAL LADO
+LIMPA_NAVE:	 PUSH 1
+			JNB SELECT, LIPA_DOIS_LADOS 	;ESCREVE A NAVE DO LADO ESQUERDO
+
+SO_UM_LADO:
+			ADD A, #40H		   ;DEFINE A POSIÇÃO x
+			CALL ESCREVE_COMANDO_LCD
+			MOV A, #0B8H		   ;COMANDO PÁGINAS
+			ADD A, #07H		;COLOCA NA PARTE DE BAIXO DA TELA  
+			CALL ESCREVE_COMANDO_LCD
+			
+			MOV R1, #11D
+			MOV A, #0H
+LIMPA_ET:
+	 		 CALL ESCREVE_DADO_LCD
+			 DJNZ R1, LIMPA_ET
+			 POP 1
+			 RET
+ LIMPA_DOIS_LADOS:
+ 			MOV R1, A
+			SUBB A, #
+			;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FALTA	
+;; DESENHA A NAVE [SPACE INVADER] COM A POSIÇÃO X DO INÍCIO DADA EM A, E NA BASE DA TELA e o select define qual o lado	
+ DESENHA_NAVE:
+ 			  			  
+			  ADD A, #40H		   ;DEFINE A POSIÇÃO x
+			  CALL ESCREVE_COMANDO_LCD
+			  MOV A, #0B8H		   ;COMANDO PÁGINAS
+			  ADD A, #07H		;COLOCA NA PARTE DE BAIXO DA TELA  
+			  CALL ESCREVE_COMANDO_LCD
+			 	;DESENHAR O BIXINHO
+			  MOV A, #70H
+			  CALL ESCREVE_DADO_LCD
+			  MOV A, #18H
+			  CALL ESCREVE_DADO_LCD
+			  MOV A, #7DH
+			  CALL ESCREVE_DADO_LCD
+			  MOV A, #0B6H
+			  CALL ESCREVE_DADO_LCD
+			  MOV A, #0BCH
+			  CALL ESCREVE_DADO_LCD
+			  MOV A, #3CH
+			  CALL ESCREVE_DADO_LCD
+			  MOV A, #0BCH
+			  CALL ESCREVE_DADO_LCD
+			   MOV A, #0B6H
+			  CALL ESCREVE_DADO_LCD
+			   MOV A, #7DH
+			  CALL ESCREVE_DADO_LCD
+			   MOV A, #18H
+			  CALL ESCREVE_DADO_LCD
+			  MOV A, #70H
+			  CALL ESCREVE_DADO_LCD
+			  RET
+;;FIM DA FUNÇÃO QUE DESENHA O MOSNTRINHO
 
 
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -128,18 +197,6 @@ BUTTON_IS_PRESSED:
 	; P1.3 ---CS1 
 	; P1.4 ---CS2  
 
-;-- Gera atraso proporcionao ao valor de R7
-;
-ATRASO:
-	PUSH 	06h			; Salva o valor de R6
-DEL1:
-	MOV		R6,#0FFh
-	DJNZ	R6,$
-	DJNZ	R7,DEL1		; Repeteo o DJNZ com R6 o numero de vezes de R7
-	POP		06h			; Recupera Valor de R6
-	RET					; Sai da Sub-rotina
-
-
 ;--------------------------------------------------------------------------------
 ;-- Envia (escreve) comando colocado em A para o LCD,  seleciona qual parte com o bit select
 ;
@@ -153,8 +210,10 @@ Cs_2:    clr	p1.3
 		setb 	p1.4               ;Chip select cs2 enabled 
 ESCREVE_INST:		
 		nop
+		PUSH 0
 		mov	r0,  #10
 		djnz	r0, $   ;GERA ATRASO
+		POP 0
 		clr 	p1.1               ;Write mode selected
   		clr 	p1.0               ;Instruction mode selected
  		mov 	p0, a            ;Place Instruction on bus
@@ -181,8 +240,10 @@ Cs_2a:
 
 ESCR_DADO:		
 	nop
+	PUSH 0
 	mov	r0,  #10
 	djnz	r0, $	   ;CRIA UM ATRASO
+	POP 0
 	clr  	p1.1               ;Write mode selected
 	setb 	p1.0               ;Data mode selected
 	mov 	p0,A               ;Place data on bus
@@ -198,9 +259,11 @@ ESCR_DADO:
 ;
 INICIO_LCD:   
 mov 	a, #3eh            ; Display off 
-        call 	ESCREVE_COMANDO_LCD                
+        call 	ESCREVE_COMANDO_LCD  
+		PUSH 7              
   		mov 	r7, 0ffh
   		djnz 	r7, $			   ;GERA ATRASO
+		
   		mov 	a,  #3fh          ; Display on
   		call 	ESCREVE_COMANDO_LCD               
   		mov 	r7, #0ffh
@@ -210,7 +273,8 @@ mov 	a, #3eh            ; Display off
   		mov 	a, #40h            ; Y address counter at First column
   		call 	ESCREVE_COMANDO_LCD                
   		mov 	a,  #0b8h          ; X address counter at Starting point
-  		call 	ESCREVE_COMANDO_LCD                
+  		call 	ESCREVE_COMANDO_LCD 
+		POP 7               
         ret
 
 

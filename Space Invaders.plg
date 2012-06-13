@@ -7,3 +7,23 @@ C:\Users\Alessandra\SpaceInvaders\Space Invaders.uvproj
 Project File Date:  06/06/2012
 
 <h2>Output:</h2>
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(21): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(44): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(51): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(59): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(68): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(71): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(75): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(78): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(82): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(85): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(89): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(92): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(96): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(101): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(115): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(121): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(126): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+Target not created
