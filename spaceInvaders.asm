@@ -120,6 +120,14 @@ BUTTON_IS_PRESSED:
 
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+ ; port 0 is used for data lines 
+	; port 1 is used for control lines as listed below
+	; P1.0 ---RS
+	; P1.1 ---R / W 
+	; P1.2 ---E 
+	; P1.3 ---CS1 
+	; P1.4 ---CS2  
+
 ;-- Gera atraso proporcionao ao valor de R7
 ;
 ATRASO:
@@ -133,39 +141,77 @@ DEL1:
 
 
 ;--------------------------------------------------------------------------------
-;-- Envia (escreve) comando colocado em A para o LCD
+;-- Envia (escreve) comando colocado em A para o LCD,  seleciona qual parte com o bit select
 ;
+
 ESCREVE_COMANDO_LCD:
-	MOV		DATA_DISP,A		; escreve na porta de dados do LCD
-	CLR		RS				; zera RS para indicar comando
-PULSO_EN_LCD:
-	SETB	EN				; da um pulso 0 - 1 - 0 em EN
-	CLR		EN
-	MOV		R7,#10			; gera um atraso
-	CALL 	ATRASO
-	RET
+	     jb 	Select, Cs_2	;SELECT É UM BIT QUE DEFINE SE TU ESCREVE NO CS1 E O CS2
+		clr	p1.4
+  		setb 	p1.3               ;Chip select cs1 enabled 
+ 		jmp 	ESCREVE_INST
+Cs_2:    clr	p1.3
+		setb 	p1.4               ;Chip select cs2 enabled 
+ESCREVE_INST:		
+		nop
+		mov	r0,  #10
+		djnz	r0, $   ;GERA ATRASO
+		clr 	p1.1               ;Write mode selected
+  		clr 	p1.0               ;Instruction mode selected
+ 		mov 	p0, a            ;Place Instruction on bus
+  		setb 	p1.2               ;Enable High
+  		nop
+  		clr 	p1.2               ;Enable Low
+  		nop
+  		clr 	p1.3               ;put cs1 in non select mode
+  		clr 	p1.4               ;put cs2 in non select mode
+  		ret
+
 	
 ;--------------------------------------------------------------------------------
-;-- Envia (escreve) dado colocado em A para o LCD
+;-- Envia (escreve) dado colocado em A para o LCD , seleciona qual parte com o bit select
 ;
 ESCREVE_DADO_LCD:
-	MOV 	DATA_DISP,A		; escreve na porta de dados do LCD
-	SETB	RS				; seta RS para indicar dado
-	JMP		PULSO_EN_LCD	; da um pulso 0 - 1 - 0 em EN (ja escrito na outra rotina)
+  	jb 	Select,Cs_2a   		;VER SE QUER ESCREVER NO CS1 OU NO CS2
+	clr	p1.4
+	setb 	p1.3               ;Chip select cs1 enabled 
+	jmp 	ESCR_DADO
+Cs_2a:    		
+	clr	p1.3
+	setb 	p1.4               ;Chip select cs2 enabled 
 
+ESCR_DADO:		
+	nop
+	mov	r0,  #10
+	djnz	r0, $	   ;CRIA UM ATRASO
+	clr  	p1.1               ;Write mode selected
+	setb 	p1.0               ;Data mode selected
+	mov 	p0,A               ;Place data on bus
+	setb 	p1.2               ;Enable High
+	nop
+	clr 	p1.2               ;Enable Low
+	nop
+	clr  	p1.3               ;put cs1 in non select mode
+	clr  	p1.4               ;put cs2 in non select mode
+   		ret
 ;--------------------------------------------------------------------------------
 ;-- Inicializa o Display: Envia comandos para configurar LCD
 ;
 INICIO_LCD:   
-	MOV     A,#38H                 ; DEFINE MATRIZ
-	LCALL   ESCREVE_COMANDO_LCD
-	MOV     A,#06H                 ; DESLOCA CURSOR DIREITA
-	LCALL   ESCREVE_COMANDO_LCD
-	MOV     A,#0EH                 ; CURSOR FIXO
-	LCALL   ESCREVE_COMANDO_LCD
-	MOV     A,#01H                 ; LIMPA DISPLAY
-	LCALL   ESCREVE_COMANDO_LCD
-	RET
+mov 	a, #3eh            ; Display off 
+        call 	ESCREVE_COMANDO_LCD                
+  		mov 	r7, 0ffh
+  		djnz 	r7, $			   ;GERA ATRASO
+  		mov 	a,  #3fh          ; Display on
+  		call 	ESCREVE_COMANDO_LCD               
+  		mov 	r7, #0ffh
+  		djnz 	r7,  $ 		;GERA ATRASO
+  		mov 	a, #0c0h               	
+  		call 	ESCREVE_COMANDO_LCD               
+  		mov 	a, #40h            ; Y address counter at First column
+  		call 	ESCREVE_COMANDO_LCD                
+  		mov 	a,  #0b8h          ; X address counter at Starting point
+  		call 	ESCREVE_COMANDO_LCD                
+        ret
 
 
 
