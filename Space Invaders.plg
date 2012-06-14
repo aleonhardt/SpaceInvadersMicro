@@ -23,7 +23,214 @@ spaceInvaders.asm(89): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
 spaceInvaders.asm(92): error A45: UNDEFINED SYMBOL (PASS-2)
 spaceInvaders.asm(96): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
 spaceInvaders.asm(101): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
-spaceInvaders.asm(115): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
-spaceInvaders.asm(121): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
-spaceInvaders.asm(126): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(115): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(121): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(126): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(130): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(131): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(145): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(149): error A15: MISSING FACTOR
+spaceInvaders.asm(213): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(216): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(243): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(246): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(263): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(277): error A53: MISSING 'USING' INFORMATION
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(2): error A21: EXPRESSION WITH FORWARD REFERENCE NOT PERMITTED
+spaceInvaders.asm(22): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(45): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(52): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(60): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(69): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(72): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(76): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(79): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(83): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(86): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(90): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(93): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(97): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(102): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(116): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(122): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(127): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(131): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(132): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(146): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(150): error A15: MISSING FACTOR
+spaceInvaders.asm(214): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(217): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(244): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(247): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(264): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(278): error A53: MISSING 'USING' INFORMATION
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(22): error A21: EXPRESSION WITH FORWARD REFERENCE NOT PERMITTED
+spaceInvaders.asm(23): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(46): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(53): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(61): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(70): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(73): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(77): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(80): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(84): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(87): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(91): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
+spaceInvaders.asm(94): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(98): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(103): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(117): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(123): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(128): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(132): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(133): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(147): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(151): error A15: MISSING FACTOR
+spaceInvaders.asm(215): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(218): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(245): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(248): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(265): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(279): error A53: MISSING 'USING' INFORMATION
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(22): error A21: EXPRESSION WITH FORWARD REFERENCE NOT PERMITTED
+spaceInvaders.asm(23): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(46): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(53): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(61): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(73): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(80): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(87): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(98): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(103): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(117): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(123): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(128): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(132): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(133): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(147): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(151): error A15: MISSING FACTOR
+spaceInvaders.asm(215): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(218): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(245): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(248): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(265): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(279): error A53: MISSING 'USING' INFORMATION
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(22): error A21: EXPRESSION WITH FORWARD REFERENCE NOT PERMITTED
+spaceInvaders.asm(23): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(46): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(53): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(61): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(98): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(103): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(117): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(123): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(128): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(132): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(133): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(147): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(151): error A15: MISSING FACTOR
+spaceInvaders.asm(215): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(218): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(245): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(248): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(265): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(279): error A53: MISSING 'USING' INFORMATION
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(22): error A21: EXPRESSION WITH FORWARD REFERENCE NOT PERMITTED
+spaceInvaders.asm(23): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(46): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(53): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(61): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(98): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(103): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(117): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(123): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(128): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(132): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(147): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(151): error A15: MISSING FACTOR
+spaceInvaders.asm(215): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(218): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(245): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(248): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(265): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(279): error A53: MISSING 'USING' INFORMATION
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(19): error A21: EXPRESSION WITH FORWARD REFERENCE NOT PERMITTED
+spaceInvaders.asm(23): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(46): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(53): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(61): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(98): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(103): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(117): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(123): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(128): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(132): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(147): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(151): error A15: MISSING FACTOR
+spaceInvaders.asm(215): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(218): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(245): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(248): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(265): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(279): error A53: MISSING 'USING' INFORMATION
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(19): error A21: EXPRESSION WITH FORWARD REFERENCE NOT PERMITTED
+spaceInvaders.asm(23): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(46): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(53): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(61): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(98): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(103): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(117): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(123): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(128): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(132): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(147): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(151): error A15: MISSING FACTOR
+spaceInvaders.asm(215): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(218): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(245): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(248): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(265): error A53: MISSING 'USING' INFORMATION
+spaceInvaders.asm(279): error A53: MISSING 'USING' INFORMATION
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(23): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(46): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(53): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(61): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(98): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(103): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(151): error A15: MISSING FACTOR
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(23): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(46): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(53): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(61): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(98): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(103): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
+spaceInvaders.asm(151): error A15: MISSING FACTOR
 Target not created

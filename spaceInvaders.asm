@@ -1,3 +1,4 @@
+USING	0	;Register bank 0 is the current bank
 
 ;;;;;;;;;;;;;; PROGRAM DATA
 INI_PROG  	EQU		0100H
@@ -18,6 +19,7 @@ ORG INT_TIM0
 
 ORG INI_PROG
 INICIO:
+
 	 CALL IMPRIME_TELA_INICIAL
 	;;SETANDO O TIMER
 	SETB EA
@@ -65,31 +67,31 @@ DEBOUNCE_BUTTON:
 	JMP BUTTON_3
 	
 BUTTON_0:
-	MOV A, #0200H
+	MOV A, #0FFH
 BOUNCE_0:
 	DEC A
-	JZ BUTTON_IS_PRESSSED
+	JZ BUTTON_IS_PRESSED
 	JB P0.0 ,BOUNCE_0
 
 BUTTON_1:
-	MOV A, #0200H
+	MOV A, #0FFH
 BOUNCE_1:
 	DEC A
-	JZ BUTTON_IS_PRESSSED
+	JZ BUTTON_IS_PRESSED
 	JB P0.1 ,BOUNCE_1
 
 BUTTON_2:
-	MOV A, #0200H
+	MOV A, #0FFH
 BOUNCE_2:
 	DEC A
-	JZ BUTTON_IS_PRESSSED
+	JZ BUTTON_IS_PRESSED
 	JB P0.2 ,BOUNCE_2
 
 BUTTON_3:
-	MOV A, #0200H
+	MOV A, #0FFH
 BOUNCE_3:
 	DEC A
-	JZ BUTTON_IS_PRESSSED
+	JZ BUTTON_IS_PRESSED
 	JB P0.3 ,BOUNCE_3
 
 BUTTON_IS_NOT_PRESSED:
@@ -112,23 +114,23 @@ BUTTON_IS_PRESSED:
 
   ; TRADUZ A POSI플O X [DADA EM A] DE 0 A 127 PARA X DE 0 A 63 E QUAL DOS LADOS DO LCD USAR
 TRADUZ_X:
-		PUSH 1	  ;SALVA O R1
+		PUSH AR1	  ;SALVA O R1
 		MOV R1, A
 		 SUBB A, #63D
 		 JC LADO_ESQUERDO
 LADO_DIREITO:
 		SETB SELECT
-		POP R1
+		POP AR1
 		RET
 LADO_ESQUERDO:
 		MOV A, R1
 		CLR SELECT
-		POP 1	;DEVOLVE O R1
+		POP AR1	;DEVOLVE O R1
 		RET
 	
  ;POSI플O X DO INICIO DADA EM A E O SELECT DEFINE QUAL LADO
-LIMPA_NAVE:	 PUSH 1
-			JNB SELECT, LIPA_DOIS_LADOS 	;ESCREVE A NAVE DO LADO ESQUERDO
+LIMPA_NAVE:	 PUSH AR1
+			JNB SELECT, LIMPA_DOIS_LADOS 	;ESCREVE A NAVE DO LADO ESQUERDO
 
 SO_UM_LADO:
 			ADD A, #40H		   ;DEFINE A POSI플O x
@@ -142,7 +144,7 @@ SO_UM_LADO:
 LIMPA_ET:
 	 		 CALL ESCREVE_DADO_LCD
 			 DJNZ R1, LIMPA_ET
-			 POP 1
+			 POP AR1
 			 RET
  LIMPA_DOIS_LADOS:
  			MOV R1, A
@@ -210,10 +212,10 @@ Cs_2:    clr	p1.3
 		setb 	p1.4               ;Chip select cs2 enabled 
 ESCREVE_INST:		
 		nop
-		PUSH 0
+		PUSH AR0
 		mov	r0,  #10
 		djnz	r0, $   ;GERA ATRASO
-		POP 0
+		POP AR0
 		clr 	p1.1               ;Write mode selected
   		clr 	p1.0               ;Instruction mode selected
  		mov 	p0, a            ;Place Instruction on bus
@@ -240,10 +242,10 @@ Cs_2a:
 
 ESCR_DADO:		
 	nop
-	PUSH 0
+	PUSH AR0
 	mov	r0,  #10
 	djnz	r0, $	   ;CRIA UM ATRASO
-	POP 0
+	POP AR0
 	clr  	p1.1               ;Write mode selected
 	setb 	p1.0               ;Data mode selected
 	mov 	p0,A               ;Place data on bus
@@ -260,7 +262,7 @@ ESCR_DADO:
 INICIO_LCD:   
 mov 	a, #3eh            ; Display off 
         call 	ESCREVE_COMANDO_LCD  
-		PUSH 7              
+		PUSH AR7              
   		mov 	r7, 0ffh
   		djnz 	r7, $			   ;GERA ATRASO
 		
@@ -274,7 +276,7 @@ mov 	a, #3eh            ; Display off
   		call 	ESCREVE_COMANDO_LCD                
   		mov 	a,  #0b8h          ; X address counter at Starting point
   		call 	ESCREVE_COMANDO_LCD 
-		POP 7               
+		POP AR7               
         ret
 
 
@@ -290,18 +292,18 @@ mov 	a, #3eh            ; Display off
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-INIMIGOS:;X,Y
-	DB 	96D, 63D
-	DB	75D, 63D
-	DB	54D, 63D
-	DB	31D, 63D //PRIMEIRA LINHA
-	DB 	96D, 43D
-	DB	75D, 43D
-	DB	54D, 43D
-	DB	31D, 43D //SEGUNDA LINHA
+INIMIGOS:;X,Y[lcd page]
+	DB 	96D, 0D
+	DB	75D, 0D
+	DB	54D, 0D
+	DB	31D, 0D //PRIMEIRA LINHA
+	DB 	96D, 1D
+	DB	75D, 1D
+	DB	54D, 1D
+	DB	31D, 1D //SEGUNDA LINHA
 
 
-NAVE:  ;X, Y, VIDAS
+NAVE:  ;X, Y[lcd page], VIDAS
 	DB 63D, 2D, 3D
 
 TIROS:	;X,Y, DIRE플O
