@@ -234,3 +234,12 @@ spaceInvaders.asm(98): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
 spaceInvaders.asm(103): error A22: EXPRESSION TYPE DOES NOT MATCH INSTRUCTION
 spaceInvaders.asm(151): error A15: MISSING FACTOR
 Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(23): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(146): error A15: MISSING FACTOR
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(23): error A45: UNDEFINED SYMBOL (PASS-2)
+Target not created
