@@ -107,6 +107,140 @@ BUTTON_IS_PRESSED:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;; PEGA A POSIÇÃO DA MEMÓRIA E ESCREVE A NAVE, A POSIÇÃO X ANTIGA DA NAVE FICA EM B
+NAVE_NA_TELA:
+	MOV A, B	;;POSIÇÃO ANTIGA DA NAVE, PARA LIMPAR A NAVE
+   	CALL TRADUX_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
+	CALL LIMPA_NAVE	 ;; LIMPA A NAVE DA TELA
+
+	MOV DPTR, #NAVE
+	CLR A
+	MOVC A, @A+DPTR	;;A FICA COM A POSIÇÃO x DA NAVE
+	CALL TRADUX_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
+	CALL DESENHA_NAVE  ;; DESENHA A NAVE NO NOVO LUGAR DA TELA
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE PEGA OS DADOS DA MEMÓRIA E DESENHA A NAVE NA TELA;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;; MATA UM INIMIGO. QUAL INIMIGO É INDICADO POR A, AS POSIÇÕES DE MEMÓRIA DEVEM SER VÁLIDAS;;;;
+;;;;;;;;;;;;;;;;;;;; SO DEPOIS ZERAR AS POSIÇÕES DE MEMÓRIA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MATA_UM_INIMIGO:
+	PUSH AR1
+	MOV DPTR, #INIMIGOS 
+	ADD A, A ;;PARA APONTAR PARA O LUGAR CORRETO
+	MOV R1, A ;;SALVA O LUGAR CORRETO
+	MOVC A, @A+DPTR ;; A AGORA TEM O X DO INIMIGO
+	CALL TRADUX_X ;;A FICA COM O X CORRETO E O BIT SELECT FICA CERTO
+	MOV B, A ;; SALVA O X CORRETO
+	MOV A, R1;; VOLTA PARA O LUGAR CORRETO
+	INC A ;;PEGAR O Y AGORA
+	MOVC A, @A+DPTR	  ;;A COM O Y
+	MOV R1, A
+	MOV A, B	;;; A FICA COM O X CORRETO
+	MOV B, R1 	;;;;;;;;;;;;;;;;; B FICA COM O Y CORRETO
+	CALL LIMPA_INIMIGO
+	POP AR1
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE PEGA OS DADOS DA MEMÓRIA DE UM INIMIGO E MATA ELE ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;LIMPA DUAS COLUNAS E ESCREVE NOVAMENTE OS INIMIGOS TODOS, NOS LUGARES ONDE A MEMÓRIA APONTA ;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; A PRIMEIRA LINHA A LIMPAR DEVE SER INDICADA POR A ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MOVE_TODOS_OS_INIMIGOS_VIVOS:
+	PUSH AR1
+	PUSH AR2
+	PUSH AR3
+	CALL LIMPA_DUAS_LINHAS
+	MOV DPTR, #INIMIGOS
+	CLR A
+	MOV R2, A  ;; SALVA EM QUAL INIMIGO ESTAMOS
+	MOV R1, #8D	  ;;SÃO NO MÁXIMO 8 INIMIGOS PARA MOVER
+
+MOVE:
+
+	MOVC  A, @A+DPTR ;;MOVE X DE UM  INIMIGO PARA O A
+	JZ PROXIMO
+	;;;; SE O INIMIGO NÃO ESTA MORTO
+	CALL TRADUX_X ;;A FICA COM O X CORRETO
+	MOV B,A	  ;; SALVA O X NO B
+	MOV A, R2
+	INC A	  
+	MOVC A, @A+DPTR ;;A TEM O Y AGORA
+	MOV R3, A
+	MOV A, B ;; A FICA COM O X
+	MOV B, R3 ;; B FICA COM O Y
+	CALL DESENHA INIMIGO
+
+	
+PROXIMO:
+	 INC R2
+	 INC R2
+	 MOV A, R2 	   ;; APONTA PARA O PRÓXIMO INIMIGO
+
+	 DJNZ R1, MOVE 
+	 RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE TODOS OS INIMIGOS VIVOS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;LIMPA DUAS LINHAS DA TELA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; A PRIMEIRA LINHA A LIMPAR DEVE SER INDICADA POR A ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+LIMPA_DUAS_LINHAS:
+			  PUSH AR1
+			  PUSH AR2
+			  MOV R1, A ;;SALVA A PRIMEIRA LINHA A LIMPAR
+			  CLR SELECT
+			  MOV B, #2D
+DENOVO:
+			  ADD A, #0B8H		   ;COMANDO PÁGINAS
+			  CALL ESCREVE_COMANDO_LCD
+			  MOV A, #40H		   ;PRIMEIRA COLUNA
+			  CALL ESCREVE_COMANDO_LCD
+			  MOV R2, #64D
+			  
+LIMPA_1:
+			   MOV A, #00H
+			   CALL ESCREVE_DADO_LCD
+			   DJNZ R2, LIMPA_1
+			   	;;LIMPA O LADO DIREITO DA COLUNA
+				SETB SELECT
+				ADD A, #0B8H		   ;COMANDO PÁGINAS
+				CALL ESCREVE_COMANDO_LCD
+				MOV A, #40H		   ;PRIMEIRA COLUNA
+				CALL ESCREVE_COMANDO_LCD
+				MOV R2, #64D
+				  
+LIMPA_2:
+				MOV A, #00H
+				CALL ESCREVE_DADO_LCD
+				DJNZ R2, LIMPA_2
+
+				MOV A, R1 ;; RECUPERA A PRIMEIRA LINHA A LIMPAR
+				INC A ;; VAI PARA A SEGUNDA
+
+			DJNZ B, DENOVO	;;LIMPA OS DOIS LADOS DA SEGUNDA COLUNA
+			POP AR2
+			POP AR1
+			RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE LIMPA DUAS LINHAS DA TELA ;;;;;;;;;;;;;;;;;;;;;;;;	   
+
+
   ; TRADUZ A POSIÇÃO X [DADA EM A] DE 0 A 127 PARA X DE 0 A 63 E QUAL DOS LADOS DO LCD USAR
 TRADUZ_X:
 		PUSH AR1	  ;SALVA O R1
@@ -157,38 +291,23 @@ MUDA_LADO:
 	
  ;POSIÇÃO X DO INICIO DADA EM A E O SELECT DEFINE QUAL LADO
  ;USA O A E O B SEM SALVAR
-LIMPA_NAVE:	 PUSH AR1
-			JNB SELECT, LIMPA_DOIS_LADOS 	;ESCREVE A NAVE DO LADO ESQUERDO
-
-SO_UM_LADO:
-			ADD A, #40H		   ;DEFINE A POSIÇÃO x
-			CALL ESCREVE_COMANDO_LCD
-			MOV A, #0B8H		   ;COMANDO PÁGINAS
-			ADD A, #07H		;COLOCA NA PARTE DE BAIXO DA TELA  
-			CALL ESCREVE_COMANDO_LCD
-			
-			MOV R1, #11D
-			MOV A, #0H
+ LIMPA_NAVE:
+				PUSH AR1
+			  MOV B, A				  ;;INICIALIZA B COM A COLUNA
+			 ADD A, #40H		   ;DEFINE A POSIÇÃO x
+			  CALL ESCREVE_COMANDO_LCD
+			  MOV A, #0B8H		   ;COMANDO PÁGINAS
+			  ADD A, #07H		;COLOCA NO LUGAR CERTO DA TELA  
+			  CALL ESCREVE_COMANDO_LCD
+			 	  
+			  MOV R1, #11D
 LIMPA_ET:
-	 		 CALL ESCREVE_DADO_LCD
-			 DJNZ R1, LIMPA_ET
-			 POP AR1
-			 RET
-LIMPA_DOIS_LADOS:
- 			MOV R1, A
-			SUBB A, #52D
-			MOV A, R1
-			JC SO_UM_LADO
-			MOV R1, #11D
-			MOV B, A		  //MARCA A COLUNA QUE ESTA
-
-LIMPA_ET2:	
-			MOV A, #0H
-			CALL ESCREVE_DADO_LCD
-			CALL TEM_QUE_MUDAR
-CLEANNING:	DJNZ R1, LIMPA_ET2
-			POP AR1
-			RET
+			  MOV A, #0H
+			  CALL ESCREVE_DADO_LCD
+			  CALL TEM_QUE_MUDAR
+			  DJNZ R1, LIMPA_ET
+			  POP AR1
+			  RET
 
 
 ;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE LIMPA A NAVE
@@ -243,13 +362,15 @@ CLEANNING:	DJNZ R1, LIMPA_ET2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;FUNÇÃO QUE DESENHA O INIMIGO, POSIÇÃO X DADA EM A, LINHA Y DADA EM B
 DESENHA_INIMIGO:
-		  	   MOV B, A			;INICIALIZA O B COM A COLUNA
+				PUSH AR1
+		  	   MOV R1, A			;INICIALIZA O R1 COM A COLUNA
 			  ADD A, #40H		   ;DEFINE A POSIÇÃO x
 			  CALL ESCREVE_COMANDO_LCD
 			  MOV A, #0B8H		   ;COMANDO PÁGINAS
 			  ADD A, B		;COLOCA NO LUGAR CERTO DA TELA  
 			  CALL ESCREVE_COMANDO_LCD
 			 	;DESENHAR A NAVEZINHA DO INIMIGO
+			MOOV B, R1			;;INICIALIZA B COM A COLUNA
 			  MOV A, #0FH
 			  CALL ESCREVE_DADO_LCD
 			  CALL TEM_QUE_MUDAR
@@ -282,8 +403,32 @@ DESENHA_INIMIGO:
 			   CALL TEM_QUE_MUDAR
 			  MOV A, #0FH
 			  CALL ESCREVE_DADO_LCD
+			  POP AR1
 			  RET
  ;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE DESENHA O UM INIMIGO
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE LIMPA UM INIMIGO DA TELA
+;;;;;;;;;;;;;;;;;; POSIÇÃO X EM A, COLUNA Y EM B. BIT SELECT DEFINE QUAL O LADO
+LIMPA_INIMIGO:
+		  	  PUSH AR1
+			  MOV R1, A
+			 ADD A, #40H		   ;DEFINE A POSIÇÃO x
+			  CALL ESCREVE_COMANDO_LCD
+			  MOV A, #0B8H		   ;COMANDO PÁGINAS
+			  ADD A, B		;COLOCA NO LUGAR CERTO DA TELA  
+			  CALL ESCREVE_COMANDO_LCD
+			  MOV B, R1		  ;;INICIALIZA B COM A COLUNA
+			  MOV R1, #11D
+LIMPA_TERRAQUEO:
+			  MOV A, #0H
+			  CALL ESCREVE_DADO_LCD
+			  CALL TEM_QUE_MUDAR
+			  DJNZ R1, LIMPA_TERRAQUEO
+			  POP AR1
+			  RET
+
+;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE LIMPA UM INIMIGO
+
 
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -393,10 +538,10 @@ mov 	a, #3eh            ; Display off
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 INIMIGOS:;X,Y[lcd page]
-	DB 	96D, 0D
-	DB	75D, 0D
-	DB	54D, 0D
-	DB	31D, 0D //PRIMEIRA LINHA
+	DB 	96D, 0D			   ;INIMIGO 0
+	DB	75D, 0D			   ;INIMIGO 1
+	DB	54D, 0D			   ;INIMIGO 2 
+	DB	31D, 0D //PRIMEIRA LINHA  ;INIMIGO 3;.... ETC
 	DB 	96D, 1D
 	DB	75D, 1D
 	DB	54D, 1D
@@ -404,7 +549,7 @@ INIMIGOS:;X,Y[lcd page]
 
 
 NAVE:  ;X, Y[lcd page], VIDAS
-	DB 63D, 2D, 3D
+	DB 63D, 7D, 3D
 
 TIROS:	;X,Y, DIREÇÃO
 	DB 0FFH, 0FFH, 0FFH	  ;;COMO COLOCAR VÁRIOS TIROS NESSA MATRIX DEPOIS? OU JÁ DEIXAR A MATRIX COM UM TAMANHO GRANDE?
