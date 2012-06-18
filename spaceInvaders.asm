@@ -128,6 +128,29 @@ NAVE_NA_TELA:
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PEGA A POSIÇÃO DA MEMÓRIA E LIMPA A NAVE. DEPOIS DE UM TEMPO ESCREVE ELA DENOVO NO MEIO, X =59 D;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MATA_NAVE:
+	PUSH AR1
+	MOV DPTR, #NAVE
+	CLR A
+	MOVC A, @A+DPTR	;;A FICA COM A POSIÇÃO x DA NAVE
+	CALL TRADUX_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
+	MOV R1, A
+	CALL LIMPA_NAVE	 ;; LIMPA A NAVE DA TELA
+	MOV A, R1
+	MOV R1, #0FH
+	DJNZ R1, $
+	CALL DESENHA_MORTE_NAVE	;DESENHA A MORTE E LIMPA DEPOIS DE UM TEMPO
+	MOV	 A, #59D
+	CLR SELECT
+	CALL DESENHA_NAVE
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MATA A NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;; MATA UM INIMIGO. QUAL INIMIGO É INDICADO POR A, AS POSIÇÕES DE MEMÓRIA DEVEM SER VÁLIDAS;;;;
@@ -195,7 +218,56 @@ PROXIMO:
 ;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE TODOS OS INIMIGOS VIVOS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; RECEBE A POSIÇÃO X DA NAVE EM A, DESENHA A MORTE, E DEPOIS DE UM TEMPO APAGA ;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+DESENHA_MORTE_NAVE:
+			PUSH AR1
+			PUSH AR2
+			MOV R1, A
+		 	MOV B, A			;INICIALIZA B COM A COLUNA INICIAL
+			  ADD A, #40H		   ;DEFINE A POSIÇÃO x
+			  CALL ESCREVE_COMANDO_LCD
+			  MOV A, #0B8H		   ;COMANDO PÁGINAS
+			  ADD A, #07H		;COLOCA NA PARTE DE BAIXO DA TELA  
+			  CALL ESCREVE_COMANDO_LCD
+			 	;DESENHAR O BIXINHO
+				
+			  MOV A, #49H
+			  CALL ESCREVE_DADO_LCD
+			   CALL TEM_QUE_MUDAR
+			  MOV A, #2AH
+			  CALL ESCREVE_DADO_LCD
+			   CALL TEM_QUE_MUDAR
+			  MOV A, #1CH
+			  CALL ESCREVE_DADO_LCD
+			   CALL TEM_QUE_MUDAR
+			  MOV A, #00H
+			  CALL ESCREVE_DADO_LCD
+			   CALL TEM_QUE_MUDAR
+			  MOV A, #077H
+			  CALL ESCREVE_DADO_LCD
+			   CALL TEM_QUE_MUDAR
+			  MOV A, #00H
+			  CALL ESCREVE_DADO_LCD
+			   CALL TEM_QUE_MUDAR
+			  MOV A, #01CH
+			  CALL ESCREVE_DADO_LCD
+			   CALL TEM_QUE_MUDAR
+			   MOV A, #2AH
+			  CALL ESCREVE_DADO_LCD
+			   CALL TEM_QUE_MUDAR
+			   MOV A, #49H
+			  CALL ESCREVE_DADO_LCD
+			   
+			   ;;; LIMPA A NAVE DEPOIS DE UM TEMPO
+			  MOV R2, #0FH
+			  DJNZ R2, $
+			  MOV A, R1
+			  CALL LIMPA_NAVE
+			  RET
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE DESENHA A MORTE DA NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;LIMPA DUAS LINHAS DA TELA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
