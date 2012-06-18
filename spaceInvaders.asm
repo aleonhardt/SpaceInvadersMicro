@@ -218,6 +218,188 @@ PROXIMO:
 ;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE TODOS OS INIMIGOS VIVOS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; escreve GAME OVER NA TELA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+GAME_OVER:
+PRIMEIRA_LINHA_ESQ:
+		CLR SELECT
+		MOV A, #40H
+		ADD A, #41D ;DEFINE ONDE COMEÇA A ESCREVER
+	   	CALL ESCREVE_COMANDO_LCD
+		MOV A, #0B8H		   ;COMANDO PÁGINAS
+		ADD A, #03H		;COLOCA NO LUGAR CERTO
+		CALL ESCREVE_COMANDO_LCD
+   ;;ESCREVE
+		 MOV A, #3EH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #41H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #49H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #49H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #79H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #79H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #38H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #0H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7EH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #21H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #21H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD
+		  MOV A, #7EH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #0H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #1H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD
+PRIMEIRA_LINHA_DIR:
+		SETB SELECT
+		MOV A, #40H
+		ADD A, #41D ;DEFINE ONDE COMEÇA A ESCREVER
+	   	CALL ESCREVE_COMANDO_LCD
+		MOV A, #0B8H		   ;COMANDO PÁGINAS
+		ADD A, #03H		;COLOCA NO LUGAR CERTO
+		CALL ESCREVE_COMANDO_LCD
+		; ESCREVE
+
+		MOV A, #7EH
+		CALL ESCREVE_DADO_LCD
+		MOV A, #7FH
+		CALL ESCREVE_DADO_LCD
+		MOV A, #1H
+		CALL ESCREVE_DADO_LCD
+		MOV A, #7FH
+		CALL ESCREVE_DADO_LCD
+		MOV A, #7FH 
+		CALL ESCREVE_DADO_LCD
+		MOV A, #0H
+		CALL ESCREVE_DADO_LCD
+		CALL ESCREVE_E
+SEGUNDA_LINHA_ESQ:
+		CLR SELECT
+		MOV A, #40H
+		ADD A, #41D ;DEFINE ONDE COMEÇA A ESCREVER
+	   	CALL ESCREVE_COMANDO_LCD
+		MOV A, #0B8H		   ;COMANDO PÁGINAS
+		ADD A, #04H		;COLOCA NO LUGAR CERTO
+		CALL ESCREVE_COMANDO_LCD
+   ;;ESCREVE
+		 MOV A, #3EH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD 
+		 MOV A, #41H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #41H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #41H
+		 CALL ESCREVE_DADO_LCD
+		  MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD 
+		 MOV A, #3EH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #0H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #1FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #3FH
+		 CALL ESCREVE_DADO_LCD
+		  MOV A, #3FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #60H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #40H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #60H
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #3FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #3FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #1FH
+		 CALL ESCREVE_DADO_LCD
+		 MOV A, #0H
+		 CALL ESCREVE_DADO_LCD 
+		 MOV A, #7FH
+		 CALL ESCREVE_DADO_LCD
+SEGUNDA_LINHA_DIR:
+		SETB SELECT
+		MOV A, #40H
+		ADD A, #41D ;DEFINE ONDE COMEÇA A ESCREVER
+	   	CALL ESCREVE_COMANDO_LCD
+		MOV A, #0B8H		   ;COMANDO PÁGINAS
+		ADD A, #04H		;COLOCA NO LUGAR CERTO
+		CALL ESCREVE_COMANDO_LCD
+   ;;ESCREVE
+		CALL ESCREVE_E
+		MOV A, #0H
+		CALL ESCREVE_DADO_LCD
+		MOV A, #7EH
+		CALL ESCREVE_DADO_LCD
+		MOV A, #7EH
+		CALL ESCREVE_DADO_LCD
+		MOV A, #48H
+		CALL ESCREVE_DADO_LCD
+		MOV A, #48H
+		CALL ESCREVE_DADO_LCD
+		MOV A, #7EH
+		CALL ESCREVE_DADO_LCD
+		MOV A, #7EH
+		CALL ESCREVE_DADO_LCD
+		MOV A, #76H
+		CALL ESCREVE_DADO_LCD
+		RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE ESCREVE O GAME OVER ;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+;;;;;;;;;;;;;;;; FUNÇAO AUXILIAR PARA ESCREVER O E
+ESCREVE_E:
+		MOV A, #7FH
+		CALL ESCREVE_DADO_LCD
+		MOV A, #7FH
+		CALL ESCREVE_DADO_LCD
+		MOV A, #49H
+		CALL ESCREVE_DADO_LCD
+		MOV A, #49H
+		CALL ESCREVE_DADO_LCD
+		MOV A, #49H
+		CALL ESCREVE_DADO_LCD
+		MOV A, #49H
+		CALL ESCREVE_DADO_LCD
+		MOV A, #49H
+		CALL ESCREVE_DADO_LCD
+		RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; RECEBE A POSIÇÃO X DA NAVE EM A, DESENHA A MORTE, E DEPOIS DE UM TEMPO APAGA ;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 DESENHA_MORTE_NAVE:
@@ -230,7 +412,7 @@ DESENHA_MORTE_NAVE:
 			  MOV A, #0B8H		   ;COMANDO PÁGINAS
 			  ADD A, #07H		;COLOCA NA PARTE DE BAIXO DA TELA  
 			  CALL ESCREVE_COMANDO_LCD
-			 	;DESENHAR O BIXINHO
+			 	;DESENHAR O BIXINHO	MORTO
 				
 			  MOV A, #49H
 			  CALL ESCREVE_DADO_LCD
