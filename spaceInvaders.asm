@@ -108,18 +108,60 @@ BUTTON_IS_PRESSED:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;;;;;;;;;;;;;;;;;;; IMPRIME A TELA INICIAL, COM OS INIMIGOS E A NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ IMPRIME_TELA_INICIAL:
+ 	PUSH AR1
+	PUSH AR2
+ 	MOV DPTR, #NAVE
+	CLR A
+	MOVC A, @A+DPTR	;;A FICA COM A POSIÇÃO x DA NAVE
+	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
+	CALL DESENHA_NAVE  ;; DESENHA A NAVE NO NOVO LUGAR DA TELA
+
+	MOV R1, #8D	  ;;SÃO 8 INIMIGOS PARA DESENHAR
+
+IMPRIME_INIMIGOS:
+
+	MOVC  A, @A+DPTR ;;MOVE X DE UM  INIMIGO PARA O A
+	CALL TRADUZ_X ;;A FICA COM O X CORRETO
+	MOV B,A	  ;; SALVA O X NO B
+	MOV A, R2
+	INC A	  
+	MOVC A, @A+DPTR ;;A TEM O Y AGORA
+	MOV R3, A
+	MOV A, B ;; A FICA COM O X
+	MOV B, R3 ;; B FICA COM O Y
+	CALL DESENHA_INIMIGO
+
+	
+;PROXIMO_INIMIGO:
+	 INC R2
+	 INC R2
+	 MOV A, R2 	   ;; APONTA PARA O PRÓXIMO INIMIGO
+
+	 DJNZ R1, IMPRIME_INIMIGOS 
+
+	  POP AR2
+	  POP AR1
+	  RET
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE DESENHA A TELA INICIAL ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;; PEGA A POSIÇÃO DA MEMÓRIA E ESCREVE A NAVE, A POSIÇÃO X ANTIGA DA NAVE FICA EM B
-NAVE_NA_TELA:
+MOVE_NAVE:
 	MOV A, B	;;POSIÇÃO ANTIGA DA NAVE, PARA LIMPAR A NAVE
-   	CALL TRADUX_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
+   	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
 	CALL LIMPA_NAVE	 ;; LIMPA A NAVE DA TELA
 
 	MOV DPTR, #NAVE
 	CLR A
 	MOVC A, @A+DPTR	;;A FICA COM A POSIÇÃO x DA NAVE
-	CALL TRADUX_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
+	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
 	CALL DESENHA_NAVE  ;; DESENHA A NAVE NO NOVO LUGAR DA TELA
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -136,7 +178,7 @@ MATA_NAVE:
 	MOV DPTR, #NAVE
 	CLR A
 	MOVC A, @A+DPTR	;;A FICA COM A POSIÇÃO x DA NAVE
-	CALL TRADUX_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
+	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
 	MOV R1, A
 	CALL LIMPA_NAVE	 ;; LIMPA A NAVE DA TELA
 	MOV A, R1
@@ -146,6 +188,7 @@ MATA_NAVE:
 	MOV	 A, #59D
 	CLR SELECT
 	CALL DESENHA_NAVE
+	POP AR1
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MATA A NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -158,10 +201,11 @@ MATA_NAVE:
 MATA_UM_INIMIGO:
 	PUSH AR1
 	MOV DPTR, #INIMIGOS 
-	ADD A, A ;;PARA APONTAR PARA O LUGAR CORRETO
+	MOV B, A
+	ADD A, B ;;PARA APONTAR PARA O LUGAR CORRETO
 	MOV R1, A ;;SALVA O LUGAR CORRETO
 	MOVC A, @A+DPTR ;; A AGORA TEM O X DO INIMIGO
-	CALL TRADUX_X ;;A FICA COM O X CORRETO E O BIT SELECT FICA CERTO
+	CALL TRADUZ_X ;;A FICA COM O X CORRETO E O BIT SELECT FICA CERTO
 	MOV B, A ;; SALVA O X CORRETO
 	MOV A, R1;; VOLTA PARA O LUGAR CORRETO
 	INC A ;;PEGAR O Y AGORA
@@ -196,7 +240,7 @@ MOVE:
 	MOVC  A, @A+DPTR ;;MOVE X DE UM  INIMIGO PARA O A
 	JZ PROXIMO
 	;;;; SE O INIMIGO NÃO ESTA MORTO
-	CALL TRADUX_X ;;A FICA COM O X CORRETO
+	CALL TRADUZ_X ;;A FICA COM O X CORRETO
 	MOV B,A	  ;; SALVA O X NO B
 	MOV A, R2
 	INC A	  
@@ -204,7 +248,7 @@ MOVE:
 	MOV R3, A
 	MOV A, B ;; A FICA COM O X
 	MOV B, R3 ;; B FICA COM O Y
-	CALL DESENHA INIMIGO
+	CALL DESENHA_INIMIGO
 
 	
 PROXIMO:
@@ -213,6 +257,9 @@ PROXIMO:
 	 MOV A, R2 	   ;; APONTA PARA O PRÓXIMO INIMIGO
 
 	 DJNZ R1, MOVE 
+	 POP AR3
+	 POP AR2
+	 POP AR1
 	 RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE TODOS OS INIMIGOS VIVOS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -446,6 +493,8 @@ DESENHA_MORTE_NAVE:
 			  DJNZ R2, $
 			  MOV A, R1
 			  CALL LIMPA_NAVE
+			  POP AR2
+			  POP AR1
 			  RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -624,7 +673,7 @@ DESENHA_INIMIGO:
 			  ADD A, B		;COLOCA NO LUGAR CERTO DA TELA  
 			  CALL ESCREVE_COMANDO_LCD
 			 	;DESENHAR A NAVEZINHA DO INIMIGO
-			MOOV B, R1			;;INICIALIZA B COM A COLUNA
+			  MOV B, R1			;;INICIALIZA B COM A COLUNA
 			  MOV A, #0FH
 			  CALL ESCREVE_DADO_LCD
 			  CALL TEM_QUE_MUDAR
@@ -803,7 +852,7 @@ INIMIGOS:;X,Y[lcd page]
 
 
 NAVE:  ;X, Y[lcd page], VIDAS
-	DB 63D, 7D, 3D
+	DB 59D, 7D, 3D
 
 TIROS:	;X,Y, DIREÇÃO
 	DB 0FFH, 0FFH, 0FFH	  ;;COMO COLOCAR VÁRIOS TIROS NESSA MATRIX DEPOIS? OU JÁ DEIXAR A MATRIX COM UM TAMANHO GRANDE?
