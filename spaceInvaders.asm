@@ -10,6 +10,24 @@ INT_TIM1	EQU		001BH
 SELECT 		BIT		00H ;SELECIONA O LADO ESQUERDO OU DIREITO DO LCD (0/1)
 TODOS 		BIT		03H	;QUANDO ESTÁ EM UM INDICA QUE DEVE ESCREVER NOS DOIS LADOS
 
+LCD_DATA	EQU 	P3
+LCD_DI		EQU		P2.0					 ;;;;;;; COLOCAR ESSES DEFINES NOS LUGARES QUE ACESSA
+LCD_RW		EQU		P2.1
+LCD_E		EQU		P2.2
+LCD_C1		EQU		P2.3
+LCD_C2		EQU		P2.4
+
+;;;;;;;;;;;;;;;;;;;;; BOTÕES
+BOTAO_DIR	EQU		P1.3
+BOTAO_ESQ	EQU		P1.2
+BOTAO_TIRO	EQU		P1.0
+
+;;;;;;;;; LEDS
+LED1		EQU		P2.5
+LED2		EQU		P2.6
+LED3		EQU		P2.7
+
+
 ORG 	0000H			; Vetor RESET
    	LJMP 	INICIO			; Pula para o inicio do programa principal
 
@@ -739,7 +757,7 @@ LIMPA_TERRAQUEO:
 
  ; port 3 is used for data lines 
 	; port 1 is used for control lines as listed below
-	; P1.0 ---RS
+	; P1.0 ---D/I
 	; P1.1 ---R / W 
 	; P1.2 ---E 
 	; P1.3 ---CS1 
@@ -752,30 +770,30 @@ LIMPA_TERRAQUEO:
 ESCREVE_COMANDO_LCD:
 	JB TODOS, LIGA_DOIS
 	     jb 	Select, Cs_2	;SELECT É UM BIT QUE DEFINE SE TU ESCREVE NO CS1 E O CS2
-		clr	p1.4
-  		setb 	p1.3               ;Chip select cs1 enabled 
+		clr	LCD_C2
+  		setb 	LCD_C1             ;Chip select cs1 enabled 
  		jmp 	ESCREVE_INST
-Cs_2:    clr	p1.3
-		setb 	p1.4               ;Chip select cs2 enabled 
-		JMP ESCREVE_INSTR
+Cs_2:    clr	LCD_C1
+		setb 	LCD_C2               ;Chip select cs2 enabled 
+		JMP ESCREVE_INST
 LIGA_DOIS:
-		SETB P1.3
-		SETB P1.4
+		SETB LCD_C1
+		SETB LCD_C2
 ESCREVE_INST:		
 		nop
 		PUSH AR0
 		mov	r0,  #0FFH
 		djnz	r0, $   ;GERA ATRASO
 		POP AR0
-		clr 	p1.1               ;Write mode selected
-  		clr 	p1.0               ;Instruction mode selected
- 		mov 	p3, a            ;Place Instruction on bus
-  		setb 	p1.2               ;Enable High
+		clr 	LCD_RW              ;Write mode selected
+  		clr 	LCD_DI              ;Instruction mode selected
+ 		mov 	LCD_DATA, a            ;Place Instruction on bus
+  		setb 	LCD_E               ;Enable High
   		nop
-  		clr 	p1.2               ;Enable Low
+  		clr 	LCD_E               ;Enable Low
   		nop
-  		clr 	p1.3               ;put cs1 in non select mode
-  		clr 	p1.4               ;put cs2 in non select mode
+  		clr 	LCD_C1              ;put cs1 in non select mode
+  		clr 	LCD_C2               ;put cs2 in non select mode
   		ret
 
 	
@@ -785,16 +803,16 @@ ESCREVE_INST:
 ESCREVE_DADO_LCD:
 	JB TODOS, LIGA_DOIS_A
   	jb 	Select,Cs_2a   		;VER SE QUER ESCREVER NO CS1 OU NO CS2
-	clr	p1.4
-	setb 	p1.3               ;Chip select cs1 enabled 
+	clr	LCD_C2
+	setb 	LCD_C1              ;Chip select cs1 enabled 
 	jmp 	ESCR_DADO
 Cs_2a:    		
-	clr	p1.3
-	setb 	p1.4               ;Chip select cs2 enabled 
+	clr		LCD_C2
+	setb 	LCD_C2              ;Chip select cs2 enabled 
 	JMP ESCR_DADO
 LIGA_DOIS_A:
-	SETB P1.3
-	SETB P1.4
+	SETB LCD_C1
+	SETB LCD_C2
 
 ESCR_DADO:		
 	nop
@@ -802,15 +820,15 @@ ESCR_DADO:
 	mov	r0,  #0FFH
 	djnz	r0, $	   ;CRIA UM ATRASO
 	POP AR0
-	clr  	p1.1               ;Write mode selected
-	setb 	p1.0               ;Data mode selected
-	mov 	p3,A               ;Place data on bus
-	setb 	p1.2               ;Enable High
+	clr  	LCD_RW               ;Write mode selected
+	setb 	LCD_DI               ;Data mode selected
+	mov 	LCD_DATA,A               ;Place data on bus
+	setb 	LCD_E              ;Enable High
 	nop
-	clr 	p1.2               ;Enable Low
+	clr 	LCD_E               ;Enable Low
 	nop
-	clr  	p1.3               ;put cs1 in non select mode
-	clr  	p1.4               ;put cs2 in non select mode
+	clr  	LCD_C1               ;put cs1 in non select mode
+	clr  	LCD_C2               ;put cs2 in non select mode
    		ret
 ;--------------------------------------------------------------------------------
 ;-- Inicializa o Display: Envia comandos para configurar LCD
@@ -838,7 +856,7 @@ CLEAR_DISPLAY:
 	PUSH AR7
 	PUSH AR1
 	  MOV R7, #07D
-DENOVO:
+DENOVO_CLEAR:
 	
 	MOV	a,  #0b8h          ; X address counter at Starting point
 	ADD A, R7
@@ -851,7 +869,7 @@ COLUNA1:
 	CALL ESCREVE_DADO_LCD
 	DJNZ R1, COLUNA1
 	
-  DJNZ R7, DENOVO
+  DJNZ R7, DENOVO_CLEAR
 POP AR1
 POP AR7
    RET
