@@ -8,7 +8,7 @@ INT_TIM1	EQU		001BH
 
 ;;;;;;;;;;; DISPLAY DATA
 SELECT 		BIT		00H ;SELECIONA O LADO ESQUERDO OU DIREITO DO LCD (0/1)
-BOTH		BIT		01H	;QUANDO ESTÁ EM UM INDICA QUE DEVE ESCREVER EM UM LADO DEPOIS NO OUTRO
+TODOS 		BIT		03H	;QUANDO ESTÁ EM UM INDICA QUE DEVE ESCREVER NOS DOIS LADOS
 
 ORG 	0000H			; Vetor RESET
    	LJMP 	INICIO			; Pula para o inicio do programa principal
@@ -121,7 +121,7 @@ BUTTON_IS_PRESSED:
 	CALL DESENHA_NAVE  ;; DESENHA A NAVE NO NOVO LUGAR DA TELA
 
 	MOV R1, #8D	  ;;SÃO 8 INIMIGOS PARA DESENHAR
-
+	MOV DPTR, #INIMIGOS
 IMPRIME_INIMIGOS:
 
 	MOVC  A, @A+DPTR ;;MOVE X DE UM  INIMIGO PARA O A
@@ -272,7 +272,7 @@ GAME_OVER:
 PRIMEIRA_LINHA_ESQ:
 		CLR SELECT
 		MOV A, #40H
-		ADD A, #41D ;DEFINE ONDE COMEÇA A ESCREVER
+		ADD A, #43D ;DEFINE ONDE COMEÇA A ESCREVER
 	   	CALL ESCREVE_COMANDO_LCD
 		MOV A, #0B8H		   ;COMANDO PÁGINAS
 		ADD A, #03H		;COLOCA NO LUGAR CERTO
@@ -323,7 +323,6 @@ PRIMEIRA_LINHA_ESQ:
 PRIMEIRA_LINHA_DIR:
 		SETB SELECT
 		MOV A, #40H
-		ADD A, #41D ;DEFINE ONDE COMEÇA A ESCREVER
 	   	CALL ESCREVE_COMANDO_LCD
 		MOV A, #0B8H		   ;COMANDO PÁGINAS
 		ADD A, #03H		;COLOCA NO LUGAR CERTO
@@ -346,7 +345,7 @@ PRIMEIRA_LINHA_DIR:
 SEGUNDA_LINHA_ESQ:
 		CLR SELECT
 		MOV A, #40H
-		ADD A, #41D ;DEFINE ONDE COMEÇA A ESCREVER
+		ADD A, #43D ;DEFINE ONDE COMEÇA A ESCREVER
 	   	CALL ESCREVE_COMANDO_LCD
 		MOV A, #0B8H		   ;COMANDO PÁGINAS
 		ADD A, #04H		;COLOCA NO LUGAR CERTO
@@ -397,8 +396,7 @@ SEGUNDA_LINHA_ESQ:
 SEGUNDA_LINHA_DIR:
 		SETB SELECT
 		MOV A, #40H
-		ADD A, #41D ;DEFINE ONDE COMEÇA A ESCREVER
-	   	CALL ESCREVE_COMANDO_LCD
+		CALL ESCREVE_COMANDO_LCD
 		MOV A, #0B8H		   ;COMANDO PÁGINAS
 		ADD A, #04H		;COLOCA NO LUGAR CERTO
 		CALL ESCREVE_COMANDO_LCD
@@ -406,17 +404,17 @@ SEGUNDA_LINHA_DIR:
 		CALL ESCREVE_E
 		MOV A, #0H
 		CALL ESCREVE_DADO_LCD
-		MOV A, #7EH
+		MOV A, #7FH
 		CALL ESCREVE_DADO_LCD
-		MOV A, #7EH
+		MOV A, #7FH
 		CALL ESCREVE_DADO_LCD
-		MOV A, #48H
+		MOV A, #9H
 		CALL ESCREVE_DADO_LCD
-		MOV A, #48H
+		MOV A, #9H
 		CALL ESCREVE_DADO_LCD
-		MOV A, #7EH
+		MOV A, #7FH
 		CALL ESCREVE_DADO_LCD
-		MOV A, #7EH
+		MOV A, #7FH
 		CALL ESCREVE_DADO_LCD
 		MOV A, #76H
 		CALL ESCREVE_DADO_LCD
@@ -739,7 +737,7 @@ LIMPA_TERRAQUEO:
 
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
- ; port 0 is used for data lines 
+ ; port 3 is used for data lines 
 	; port 1 is used for control lines as listed below
 	; P1.0 ---RS
 	; P1.1 ---R / W 
@@ -752,21 +750,26 @@ LIMPA_TERRAQUEO:
 ;
 
 ESCREVE_COMANDO_LCD:
+	JB TODOS, LIGA_DOIS
 	     jb 	Select, Cs_2	;SELECT É UM BIT QUE DEFINE SE TU ESCREVE NO CS1 E O CS2
 		clr	p1.4
   		setb 	p1.3               ;Chip select cs1 enabled 
  		jmp 	ESCREVE_INST
 Cs_2:    clr	p1.3
 		setb 	p1.4               ;Chip select cs2 enabled 
+		JMP ESCREVE_INSTR
+LIGA_DOIS:
+		SETB P1.3
+		SETB P1.4
 ESCREVE_INST:		
 		nop
 		PUSH AR0
-		mov	r0,  #10
+		mov	r0,  #0FFH
 		djnz	r0, $   ;GERA ATRASO
 		POP AR0
 		clr 	p1.1               ;Write mode selected
   		clr 	p1.0               ;Instruction mode selected
- 		mov 	p0, a            ;Place Instruction on bus
+ 		mov 	p3, a            ;Place Instruction on bus
   		setb 	p1.2               ;Enable High
   		nop
   		clr 	p1.2               ;Enable Low
@@ -780,6 +783,7 @@ ESCREVE_INST:
 ;-- Envia (escreve) dado colocado em A para o LCD , seleciona qual parte com o bit select
 ;
 ESCREVE_DADO_LCD:
+	JB TODOS, LIGA_DOIS_A
   	jb 	Select,Cs_2a   		;VER SE QUER ESCREVER NO CS1 OU NO CS2
 	clr	p1.4
 	setb 	p1.3               ;Chip select cs1 enabled 
@@ -787,16 +791,20 @@ ESCREVE_DADO_LCD:
 Cs_2a:    		
 	clr	p1.3
 	setb 	p1.4               ;Chip select cs2 enabled 
+	JMP ESCR_DADO
+LIGA_DOIS_A:
+	SETB P1.3
+	SETB P1.4
 
 ESCR_DADO:		
 	nop
 	PUSH AR0
-	mov	r0,  #10
+	mov	r0,  #0FFH
 	djnz	r0, $	   ;CRIA UM ATRASO
 	POP AR0
 	clr  	p1.1               ;Write mode selected
 	setb 	p1.0               ;Data mode selected
-	mov 	p0,A               ;Place data on bus
+	mov 	p3,A               ;Place data on bus
 	setb 	p1.2               ;Enable High
 	nop
 	clr 	p1.2               ;Enable Low
@@ -807,19 +815,18 @@ ESCR_DADO:
 ;--------------------------------------------------------------------------------
 ;-- Inicializa o Display: Envia comandos para configurar LCD
 ;
-INICIO_LCD:   
-mov 	a, #3eh            ; Display off 
+INICIO_LCD:  
+	SETB TODOS  
+	mov 	a, #3eh            ; Display off 
         call 	ESCREVE_COMANDO_LCD  
 		PUSH AR7              
-  		mov 	r7, 0ffh
-  		djnz 	r7, $			   ;GERA ATRASO
-		
+  		CALL DELAY			   ;GERA ATRASO
+		SETB TODOS 
   		mov 	a,  #3fh          ; Display on
   		call 	ESCREVE_COMANDO_LCD               
-  		mov 	r7, #0ffh
-  		djnz 	r7,  $ 		;GERA ATRASO
-  		mov 	a, #0c0h               	
-  		call 	ESCREVE_COMANDO_LCD               
+  		CALL DELAY
+  		CALL CLEAR_DISPLAY
+             
   		mov 	a, #40h            ; Y address counter at First column
   		call 	ESCREVE_COMANDO_LCD                
   		mov 	a,  #0b8h          ; X address counter at Starting point
@@ -827,8 +834,41 @@ mov 	a, #3eh            ; Display off
 		POP AR7               
         ret
 
+CLEAR_DISPLAY:
+	PUSH AR7
+	PUSH AR1
+	  MOV R7, #07D
+DENOVO:
+	
+	MOV	a,  #0b8h          ; X address counter at Starting point
+	ADD A, R7
+  	call 	ESCREVE_COMANDO_LCD
+	MOV R1, #064D
+	mov 	a, #40h            ; Y address counter at First column
+  	call 	ESCREVE_COMANDO_LCD                
+COLUNA1:
+	MOV A, #00H
+	CALL ESCREVE_DADO_LCD
+	DJNZ R1, COLUNA1
+	
+  DJNZ R7, DENOVO
+POP AR1
+POP AR7
+   RET
 
+DELAY:
+	PUSH AR0
+	PUSH AR1
 
+	mov	r0, #0ffh
+ONE_MORE_TIME:
+ 	mov r1, #0ffh
+	djnz r1, $
+	djnz r0, one_more_time
+	
+	POP AR1
+	POP AR0
+	ret
 
 
 
