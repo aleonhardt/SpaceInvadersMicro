@@ -4,36 +4,6 @@
 <h1>µVision Build Log</h1>
 <h2>Project:</h2>
 C:\Users\Alessandra\SpaceInvaders\Space Invaders.uvproj
-Project File Date:  06/06/2012
+Project File Date:  06/20/2012
 
 <h2>Output:</h2>
-Build target 'Target 1'
-assembling spaceInvaders.asm...
-spaceInvaders.asm(778): error A45: UNDEFINED SYMBOL (PASS-2)
-spaceInvaders.asm(859): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
-spaceInvaders.asm(872): error A51: TARGET OUT OF RANGE
-Target not created
-Build target 'Target 1'
-assembling spaceInvaders.asm...
-spaceInvaders.asm(859): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
-spaceInvaders.asm(872): error A51: TARGET OUT OF RANGE
-Target not created
-Build target 'Target 1'
-assembling spaceInvaders.asm...
-spaceInvaders.asm(872): error A51: TARGET OUT OF RANGE
-Target not created
-Build target 'Target 1'
-assembling spaceInvaders.asm...
-linking...
-*** WARNING L5: CODE SPACE MEMORY OVERLAP
-    FROM:    0000H
-    TO:      0002H
-*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
-    SYMBOL:  ?C_START
-    MODULE:  STARTUP.obj (?C_STARTUP)
-*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
-    SYMBOL:  ?C_START
-    MODULE:  STARTUP.obj (?C_STARTUP)
-    ADDRESS: 0585H
-Program Size: data=9.0 xdata=0 code=1418
-"Space Invaders" - 0 Error(s), 3 Warning(s).

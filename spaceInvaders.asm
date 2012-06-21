@@ -463,6 +463,7 @@ ESCREVE_E:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; RECEBE A POSIÇÃO X DA NAVE EM A, DESENHA A MORTE, E DEPOIS DE UM TEMPO APAGA ;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 DESENHA_MORTE_NAVE:
@@ -855,7 +856,7 @@ INICIO_LCD:
 CLEAR_DISPLAY:
 	PUSH AR7
 	PUSH AR1
-	  MOV R7, #07D
+	  MOV R7, #08D
 DENOVO_CLEAR:
 	
 	MOV	a,  #0b8h          ; X address counter at Starting point
