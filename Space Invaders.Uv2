@@ -5,8 +5,8 @@ Target (Target 1), 0x0000 // Tools: 'MCS-51'
 
 Group (Source Group 1)
 
-File 1,2,<.\STARTUP.A51><STARTUP.A51>
-File 1,2,<.\spaceInvaders.asm><spaceInvaders.asm>
+File 1,2,<.\STARTUP.A51><STARTUP.A51> 0x0 
+File 1,2,<.\spaceInvaders.asm><spaceInvaders.asm> 0x0 
 
 
 Options 1,0,0  // Target 'Target 1'
@@ -49,8 +49,6 @@ Options 1,0,0  // Target 'Target 1'
  RunUsr 1 0 <>
  BrunUsr 0 0 <>
  BrunUsr 1 0 <>
- CrunUsr 0 0 <>
- CrunUsr 1 0 <>
  SVCSID <>
  MODEL5=0
  RTOS5=0
