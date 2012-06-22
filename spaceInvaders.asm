@@ -162,53 +162,46 @@ VOLTA_TIM0:
 	RETI
 
 
-;;;;;;;;;;;;;;;;;;;;;; função de debounce
-;; B-QUAL BUTTON  0-P0.0, 1-P0.1 ETC
-;;RETURN B=00 SE BOTAO ESTÁ PRESSIONADO E B=FF SE NÃO ESTÁ
-DEBOUNCE_BUTTON:
-	MOV A, B
-	JZ BUTTON_0
-	SUBB A, #2H
-	JC BUTTON_1
-	JZ BUTTON_2
-	JMP BUTTON_3
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; INICIALIZA OS INIMIGOS COM A TABELA DE INIMIGOS LOGO ABAIXO;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+INICIALIZA_INIMIGOS:
+											  ; PREENCHE OS DADOS DOS INIMIGOS
+	;MOV PRIMEIRA_VEZ, #01H   ; DIZ QUE JA INICIO
+	PUSH AR0
+	PUSH AR1	
+	MOV A,#ENEMIES ;COMECA COM O VALOR DA X DO INIMIGO
+	MOV R0, A
+	MOV DPTR,#TAB_INIMIGOS
+	CLR A
+	MOV R1, A
 	
-BUTTON_0:
-	MOV A, #0FFH
-BOUNCE_0:
-	DEC A
-	JZ BUTTON_IS_PRESSED
-	JB P0.0 ,BOUNCE_0
-
-BUTTON_1:
-	MOV A, #0FFH
-BOUNCE_1:
-	DEC A
-	JZ BUTTON_IS_PRESSED
-	JB P0.1 ,BOUNCE_1
-
-BUTTON_2:
-	MOV A, #0FFH
-BOUNCE_2:
-	DEC A
-	JZ BUTTON_IS_PRESSED
-	JB P0.2 ,BOUNCE_2
-
-BUTTON_3:
-	MOV A, #0FFH
-BOUNCE_3:
-	DEC A
-	JZ BUTTON_IS_PRESSED
-	JB P0.3 ,BOUNCE_3
-
-BUTTON_IS_NOT_PRESSED:
-	MOV B, #0FFH
+	LOOP_INICIA_INIMIGOS:	
+	MOV A, R1
+	MOVC A,@A + DPTR
+	MOV @R0, A
+	INC R0
+	INC R1
+	CJNE R1, #016D,LOOP_INICIA_INIMIGOS ; SÃO 8 INIMIGOS
+	POP AR1
+	POP AR0 
 	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-BUTTON_IS_PRESSED:
-	MOV B, #00H
-	RET
-;;;;;;;;;;;;; FIM DA FUNÇÃO DE DEBOUNCE 
+TAB_INIMIGOS:
+	;COORDENADAS DO VEICULO:
+	;      X,    Y ,				   
+	DB 15D, 00H   
+	DB 35D, 00H
+	DB	55D, 00H
+	DB	 75D, 00H
+	DB 15D, 02H   
+	DB 35D, 02H
+	DB	 55D, 02H
+	DB	 75D, 02H
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -223,37 +216,30 @@ BUTTON_IS_PRESSED:
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  IMPRIME_TELA_INICIAL:
  	PUSH AR1
-	PUSH AR2
- 	MOV DPTR, #NAVE
-	CLR A
-	MOVC A, @A+DPTR	;;A FICA COM A POSIÇÃO x DA NAVE
-	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
-	CALL DESENHA_NAVE  ;; DESENHA A NAVE NO NOVO LUGAR DA TELA
+	PUSH AR0
+ 	CALL INICIO_LCD
+	CALL DELAY
 
+	MOV A, PLAYERX	;;A FICA COM A POSIÇÃO x DA NAVE
+	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
+	CALL DESENHA_NAVE  ;; DESENHA A NAVE NO LUGAR DA TELA
 	MOV R1, #8D	  ;;SÃO 8 INIMIGOS PARA DESENHAR
-	MOV DPTR, #INIMIGOS
+	MOV R0, #ENEMIES
 IMPRIME_INIMIGOS:
 
-	MOVC  A, @A+DPTR ;;MOVE X DE UM  INIMIGO PARA O A
+	MOV A, @R0
 	CALL TRADUZ_X ;;A FICA COM O X CORRETO
-	MOV B,A	  ;; SALVA O X NO B
-	MOV A, R2
-	INC A	  
-	MOVC A, @A+DPTR ;;A TEM O Y AGORA
-	MOV R3, A
-	MOV A, B ;; A FICA COM O X
-	MOV B, R3 ;; B FICA COM O Y
+	INC R0
+	MOV B, @R0			;;Y NO B
 	CALL DESENHA_INIMIGO
-
+	CALL DELAY
 	
 ;PROXIMO_INIMIGO:
-	 INC R2
-	 INC R2
-	 MOV A, R2 	   ;; APONTA PARA O PRÓXIMO INIMIGO
+	 INC R0		;APONTA PARA O X DO PRÓXIMO INIMIGO
 
 	 DJNZ R1, IMPRIME_INIMIGOS 
-
-	  POP AR2
+	   
+	  POP AR0
 	  POP AR1
 	  RET
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -333,36 +319,34 @@ MATA_UM_INIMIGO:
 MOVE_TODOS_OS_INIMIGOS_VIVOS:
 	PUSH AR1
 	PUSH AR2
-	PUSH AR3
+	PUSH AR0
 	CALL LIMPA_DUAS_LINHAS
-	MOV DPTR, #INIMIGOS
-	CLR A
-	MOV R2, A  ;; SALVA EM QUAL INIMIGO ESTAMOS
+	MOV R0, #ENEMIES	;SALVA O ENDEREÇO DOS INIMIGOS
+
 	MOV R1, #8D	  ;;SÃO NO MÁXIMO 8 INIMIGOS PARA MOVER
 
 MOVE:
 
-	MOVC  A, @A+DPTR ;;MOVE X DE UM  INIMIGO PARA O A
+	MOV A, @R0	;MOVE O X DO INIMIGO PARA R2
+	MOV R2, A
+	MOV A, #0FFH
+	XRL A, R2
 	JZ PROXIMO
 	;;;; SE O INIMIGO NÃO ESTA MORTO
-	CALL TRADUZ_X ;;A FICA COM O X CORRETO
-	MOV B,A	  ;; SALVA O X NO B
 	MOV A, R2
-	INC A	  
-	MOVC A, @A+DPTR ;;A TEM O Y AGORA
-	MOV R3, A
-	MOV A, B ;; A FICA COM O X
-	MOV B, R3 ;; B FICA COM O Y
+	CALL TRADUZ_X ;;A FICA COM O X CORRETO
+	INC R0
+	MOV B, @R0 ;; B FICA COM O VALOR DE Y
 	CALL DESENHA_INIMIGO
-
+	DEC R0 ;;SÓ PARA FUNCIONAR OS DOIS INC ABAIXO
 	
 PROXIMO:
-	 INC R2
-	 INC R2
-	 MOV A, R2 	   ;; APONTA PARA O PRÓXIMO INIMIGO
+	 INC R0
+	 INC R0 ;APONTA PARA O PRÓXIMO INIMIGO
+
 
 	 DJNZ R1, MOVE 
-	 POP AR3
+	 POP AR0
 	 POP AR2
 	 POP AR1
 	 RET
@@ -549,7 +533,9 @@ ESCREVE_E:
 		RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DEPOIS DAQUI, NÃO USAR MAIS NENHUMA FUNÇÃO DO DISPLAY!!! ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; RECEBE A POSIÇÃO X DA NAVE EM A, DESENHA A MORTE, E DEPOIS DE UM TEMPO APAGA ;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -611,9 +597,9 @@ LIMPA_DUAS_LINHAS:
 			  PUSH AR1
 			  PUSH AR2
 			  MOV R1, A ;;SALVA A PRIMEIRA LINHA A LIMPAR
-			  CLR SELECT
+			  SETB TODOS ;; LIMPA OD DOIS LADOS DA TELA AO MESMO TEMPO
 			  MOV B, #2D
-DENOVO:
+LIMPA_OUTRA_LINHA:
 			  ADD A, #0B8H		   ;COMANDO PÁGINAS
 			  CALL ESCREVE_COMANDO_LCD
 			  MOV A, #40H		   ;PRIMEIRA COLUNA
@@ -623,27 +609,18 @@ DENOVO:
 LIMPA_1:
 			   MOV A, #00H
 			   CALL ESCREVE_DADO_LCD
-			   DJNZ R2, LIMPA_1
-			   	;;LIMPA O LADO DIREITO DA COLUNA
-				SETB SELECT
-				ADD A, #0B8H		   ;COMANDO PÁGINAS
-				CALL ESCREVE_COMANDO_LCD
-				MOV A, #40H		   ;PRIMEIRA COLUNA
-				CALL ESCREVE_COMANDO_LCD
-				MOV R2, #64D
-				  
-LIMPA_2:
-				MOV A, #00H
-				CALL ESCREVE_DADO_LCD
-				DJNZ R2, LIMPA_2
+			   DJNZ R2, LIMPA_1	   ;;LIMPA A LINHA TODA
+			   	
 
 				MOV A, R1 ;; RECUPERA A PRIMEIRA LINHA A LIMPAR
 				INC A ;; VAI PARA A SEGUNDA
 
-			DJNZ B, DENOVO	;;LIMPA OS DOIS LADOS DA SEGUNDA COLUNA
+			DJNZ B, LIMPA_OUTRA_LINHA	;;LIMPA OS DOIS LADOS DA SEGUNDA LINHA
+			CLR TODOS
 			POP AR2
 			POP AR1
 			RET
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE LIMPA DUAS LINHAS DA TELA ;;;;;;;;;;;;;;;;;;;;;;;;	   
 
@@ -672,7 +649,7 @@ TEM_QUE_MUDAR:
 		JB SELECT, NAO_MUDA
 		INC B
 		MOV A, B
-		SUBB A, #64D
+		SUBB A, #63D
 		JZ MUDA_LADO_CALL
 		RET
 MUDA_LADO_CALL:
@@ -957,6 +934,7 @@ DENOVO_CLEAR:
 	
 	MOV	a,  #0b8h          ; X address counter at Starting point
 	ADD A, R7
+	DEC A
   	call 	ESCREVE_COMANDO_LCD
 	MOV R1, #064D
 	mov 	a, #40h            ; Y address counter at First column
