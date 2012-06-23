@@ -197,6 +197,23 @@ TRATA_TIM0:
 VOLTA_TIM0:
 	RETI
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;; FUN플O QUE CONTROLA O GAME OVER, DEVE SER CHAMADA SEMPRE, E EM PRIMEIRO LUGAR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CONTROLA_GAME_OVER:
+	JNB GAME_OVER, AINDA_NAO_ACABOU
+				;;SE O BIT GAME OVER T� LIGADO
+	 CALL ESCREVE_GAME_OVER
+
+	 JMP $ ;;CANCELA TODO O OUTRO PROCESSAMENTO, FICA AQUI PARA SEMPRE
+	 RET 	;;LOL NEVER
+AINDA_NAO_ACABOU:
+		RET	 ;;VOLTA PARA O PROCESSAMENTO NORMAL
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; FIM DA FUN플O QUE CONTROLA O GAME OVER ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;; FUN플O QUE MOVE OS INIMIGOS DE ACORDO ;;;;;;;;;;;;;;;;;;;;;;;;;
