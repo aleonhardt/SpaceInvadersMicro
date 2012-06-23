@@ -46,8 +46,21 @@ ENEMIES DATA 33H
 ;TABELA DE INIMIGOS
 LAST_ENEMY DATA 41H
 
+NUMERO_INIMIGOS EQU 08D
+
 PLAYER_SHOTS DATA 43H
 ENEMY_SHOTS DATA 44H
+
+
+;;;;;; flags de movimentação dos inimigos na memória
+DIRECAO_INIMIGOS BIT 05H   ;;; ESQUERDA 1, DIREITA 0
+MUDOU_DIRECAO BIT 06H
+GAME_OVER		BIT	07H
+MAIOR_X			DATA	50H	
+MENOR_X			DATA	51H
+
+DESLOCAMENTO_INIMIGO EQU 10D
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ORG 	0000H			; Vetor RESET
@@ -161,6 +174,181 @@ TRATA_TIM0:
 VOLTA_TIM0:
 	RETI
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;; FUNÇÃO QUE MOVE OS INIMIGOS DE ACORDO ;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MOVE_MEMORIA_INIMIGOS:
+
+	 CALL DEFINE_BORDAS_X_INIMIGOS ;INICIALIZA O MAIOR_X E O MENOR_X
+	JB DIRECAO_INIMIGOS, ATUALMENTE_ESQUERDA
+	;JMP	ATUALMENTE_DIREITA
+	
+	ATUALMENTE_DIREITA:
+		; PROCURA O MAIOR X
+			MOV A, MAIOR_X												  ;;QUE FAZ ESSAS LINHAS MANOOO?
+			ADD A, #DESLOCAMENTO_INIMIGO 
+			SUBB A, #116D ; TAMANHO MÁXIMO DO x MENOS TAMANHO DA NAVE = 116
+			JC CONTINUA_DESLOCAMENTO
+
+			SETB DIRECAO_INIMIGOS	  ;PASSOU DO MÁXIMO DA TELA, SÓ ANDA UMMA LINHA PRÁ BAIXO E MUDA A DIRECAO
+			SETB MUDOU_DIRECAO
+			JMP	CONTINUA_DESLOCAMENTO
+	
+	ATUALMENTE_ESQUERDA:
+		; PROCURA O MENOR X
+			MOV A, MENOR_X
+			SUBB A, #DESLOCAMENTO_INIMIGO 
+			JNC CONTINUA_DESLOCAMENTO            	 ; SE BAIXOU DE ZERO ENTÃO PASSOU
+			CLR DIRECAO_INIMIGOS					  ;FAZ ELE IR PARA A LINHA DE BAIXO
+			SETB MUDOU_DIRECAO
+			
+	CONTINUA_DESLOCAMENTO:
+		
+			JB MUDOU_DIRECAO, MUDA_LINHA 	  ;;SE TROCOU DE DIREÇÃO CHAMA A FUNÇÃO QUE MUDA A LINHA
+			CALL MOVE_MEMORIA_TODOS_INIMIGOS_VIVOS	   ;;SE NÃO, CHAMA A FUNÇÃO QUE MOVE OS CARAS
+			JMP FIM_MOVIMENTACAO
+
+  MUDA_LINHA:
+  	CALL MUDA_LINHA_MEMORIA_TODOS_INIMIGOS_VIVOS
+
+	FIM_MOVIMENTACAO:
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE OS INIMIGOS, DE ACORDO
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE MOVE OS INIMIGOS HORIZONTALMENTE NA MEMÓRIA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MOVE_MEMORIA_TODOS_INIMIGOS_VIVOS:
+	PUSH AR0
+	PUSH AR1
+	PUSH AR2
+	MOV R1, #NUMERO_INIMIGOS	
+	MOV R0, #ENEMIES
+ONE_MORE_ENEMY:	
+	MOV A, @R0
+	MOV R2, A
+	MOV A, #0FFH ;;JÁ ESTA MORTO
+	XRL A, R2
+	JZ MOVE_PROXIMO_INIMIGO
+
+	MOV A, R2
+	JB DIRECAO_INIMIGOS, MOVE_ESQUERDA
+
+move_direita:	
+	ADD A, #DESLOCAMENTO_INIMIGO
+	MOV @R0, A					 ;;MUDA O X DO INIMIGO
+	JMP MOVE_PROXIMO_INIMIGO
+
+move_esquerda: 
+		CLR C
+		SUBB A, #DESLOCAMENTO_INIMIGO
+		MOV @R0, A					 ;;MUDA O X DO INIMIGO
+
+MOVE_PROXIMO_INIMIGO:
+	INC R0
+	INC R0 ;;VAI PARA O X DO INIMIGO SEGINTE
+	DJNZ R1, ONE_MORE_ENEMY	 
+	
+	POP AR2
+	POP AR1
+	POP AR0
+ RET
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE OS INIMIGOS NA MEMORIA, HORIZONTALMENTE
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;; FUNÇÃO QUE FAZ OS INIMIGOS IREM OARA A LINHA DE BAIXO
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+MUDA_LINHA_MEMORIA_TODOS_INIMIGOS_VIVOS:
+	PUSH AR0
+	PUSH AR1
+	PUSH AR2
+	MOV R1, #NUMERO_INIMIGOS	
+	MOV R0, #ENEMIES
+	INC R0 	;APONTA PARA O Y
+ONE_MORE_ENEMY_1:	
+	MOV A, @R0
+	MOV R2, A
+	MOV A, #0FFH ;;JÁ ESTA MORTO
+	XRL A, R2
+	JZ MOVE_PROXIMO_INIMIGO
+
+	MOV A, R2
+	ADD A, #01H ;VAI PARA A LINHA DE BAIXO
+		
+	MOV @R0, A					 ;;MUDA O X DO INIMIGO
+	CJNE A, #07H, MOVE_PROXIMO_INIMIGO_1	  ;CASO SEJA A LINHA 7, É GAME OVER MAN
+
+INDICA_GAME_OVER:
+		SETB GAME_OVER
+		POP AR2
+		POP AR1
+		POP AR0
+ 		RET				;VOLTA IMEDIATAMENTE E NEM PRECISA MAIS ESCREVER, JÁ MATA O BIXO E DEU MANO. E DEU
+MOVE_PROXIMO_INIMIGO_1:
+	INC R0
+	INC R0 ;;VAI PARA O y DO INIMIGO SEGINTE
+	DJNZ R1, ONE_MORE_ENEMY_1	 
+	
+	POP AR2
+	POP AR1
+	POP AR0
+ 	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE FAZ OS INIMIGOS IREM PARA A LINHA DE BAIXO
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;; FUNCAO QUE DEFINE O VALOR DO INIMIGO MAIS À DIREITA E À ESQUERDA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+DEFINE_BORDAS_X_INIMIGOS:
+	 PUSH AR0
+	 PUSH AR1
+	 PUSH AR2
+		
+	MOV MAIOR_X, #0H
+	MOV MENOR_X, #0FFH
+
+	 MOV R1, #NUMERO_INIMIGOS	
+	MOV R0, #ENEMIES
+ONE_MORE_ENEMY_LALA:	
+	MOV A, @R0
+	MOV R2, A
+	MOV A, #0FFH ;;JÁ ESTA MORTO
+	XRL A, R2
+	JZ BORDA_PROXIMO_INIMIGO
+	MOV A, R2
+	SUBB A, MAIOR_X
+	JNC ESSE_EH_MAIOR
+
+	MOV A,MENOR_X			   ;SE NAO É O MAIOR, SERÁ O MENOR?
+	SUBB A, R2					;SUBTRAI O X ATUAL DO MENOR_X , SE NÃO DER CARRY É POR QUE O X ATUAL É MENOR
+	JNC ESSE_EH_MENOR
+	;;SE NAO É NADA, SÓ VAI PRO PRÓXIMO
+BORDA_PROXIMO_INIMIGO:
+	INC R0
+	INC R0 ;;VAI PARA O X DO INIMIGO SEGINTE
+	DJNZ R1, ONE_MORE_ENEMY_LALA
+VOLTA_BORDAS:	
+	POP AR2
+	POP AR1
+	POP AR0
+ 	RET	 
+ ESSE_EH_MAIOR:
+ 	MOV MAIOR_X, A
+	JMP BORDA_PROXIMO_INIMIGO
+ESSE_EH_MENOR:
+	MOV MENOR_X, A
+	JMP BORDA_PROXIMO_INIMIGO
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE DEFINE AS BORDAS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -323,7 +511,7 @@ MOVE_TODOS_OS_INIMIGOS_VIVOS:
 	CALL LIMPA_DUAS_LINHAS
 	MOV R0, #ENEMIES	;SALVA O ENDEREÇO DOS INIMIGOS
 
-	MOV R1, #8D	  ;;SÃO NO MÁXIMO 8 INIMIGOS PARA MOVER
+	MOV R1, #NUMERO_INIMIGOS	  ;;SÃO NO MÁXIMO 8 INIMIGOS PARA MOVER
 
 MOVE:
 
@@ -357,7 +545,7 @@ PROXIMO:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; escreve GAME OVER NA TELA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-GAME_OVER:
+ESCREVE_GAME_OVER:
 PRIMEIRA_LINHA_ESQ:
 		CLR SELECT
 		MOV A, #40H

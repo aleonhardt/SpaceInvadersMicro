@@ -9,12 +9,100 @@ Project File Date:  06/20/2012
 <h2>Output:</h2>
 Build target 'Target 1'
 assembling spaceInvaders.asm...
-spaceInvaders.asm(331): warning A52: VALUE HAS BEEN TRUNCATED TO 8 BITS
-spaceInvaders.asm(337): error A40: INVALID REGISTER
+spaceInvaders.asm(185): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(191): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(196): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(200): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(204): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(224): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(267): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(270): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
+spaceInvaders.asm(289): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
+spaceInvaders.asm(496): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
 Target not created
 Build target 'Target 1'
 assembling spaceInvaders.asm...
-spaceInvaders.asm(337): error A40: INVALID REGISTER
+spaceInvaders.asm(185): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(191): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(196): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(200): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(204): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(224): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(267): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(270): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
+spaceInvaders.asm(289): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
+spaceInvaders.asm(496): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(185): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(191): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(196): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(200): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(204): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(224): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(267): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(270): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
+spaceInvaders.asm(289): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(185): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(191): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(196): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(200): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(204): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(224): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(267): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(270): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
+spaceInvaders.asm(289): error A8: ATTEMPT TO DEFINE AN ALREADY DEFINED LABEL
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(185): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(191): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(196): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(200): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(204): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(224): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(267): error A45: UNDEFINED SYMBOL (PASS-2)
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(185): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(196): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(224): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(267): error A45: UNDEFINED SYMBOL (PASS-2)
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(185): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(196): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(224): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(267): error A45: UNDEFINED SYMBOL (PASS-2)
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(185): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(196): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(224): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(267): error A45: UNDEFINED SYMBOL (PASS-2)
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(187): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(198): error A45: UNDEFINED SYMBOL (PASS-2)
+Target not created
+Build target 'Target 1'
+assembling spaceInvaders.asm...
+spaceInvaders.asm(187): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(198): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(312): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(313): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(324): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(327): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(341): error A45: UNDEFINED SYMBOL (PASS-2)
+spaceInvaders.asm(344): error A45: UNDEFINED SYMBOL (PASS-2)
 Target not created
 Build target 'Target 1'
 assembling spaceInvaders.asm...
@@ -28,7 +116,7 @@ linking...
 *** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
     SYMBOL:  ?C_START
     MODULE:  STARTUP.obj (?C_STARTUP)
-    ADDRESS: 059BH
-Program Size: data=9.0 xdata=0 code=1440
+    ADDRESS: 0641H
+Program Size: data=9.0 xdata=0 code=1606
 creating hex file from "Space Invaders"...
 "Space Invaders" - 0 Error(s), 3 Warning(s).
