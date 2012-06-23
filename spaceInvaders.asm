@@ -19,11 +19,11 @@ SELECT 		BIT		00H ;SELECIONA O LADO ESQUERDO OU DIREITO DO LCD (0/1)
 TODOS 		BIT		03H	;QUANDO ESTÁ EM UM INDICA QUE DEVE ESCREVER NOS DOIS LADOS
 
 LCD_DATA	EQU 	P3
-LCD_DI		EQU		P2.0					 ;;;;;;; COLOCAR ESSES DEFINES NOS LUGARES QUE ACESSA
-LCD_RW		EQU		P2.1
-LCD_E		EQU		P2.2
-LCD_C1		EQU		P2.3
-LCD_C2		EQU		P2.4
+LCD_DI		EQU		P2.7					 ;;;;;;; COLOCAR ESSES DEFINES NOS LUGARES QUE ACESSA
+LCD_RW		EQU		P2.6
+LCD_E		EQU		P2.5
+LCD_C1		EQU		P2.4
+LCD_C2		EQU		P2.3
 
 LINHA_LCD DATA 07FH
 
@@ -44,18 +44,21 @@ LAST_ENEMY DATA 41H
 
 NUMERO_INIMIGOS EQU 08D
 
-PLAYER_SHOTS DATA 43H
-ENEMY_SHOTS DATA 44H
+PLAYER_SHOTS DATA 43H  ;;SEMPRE NOS ÍMPARES	 X-43, Y-45, X- 47, Y-49
+ENEMY_SHOTS DATA 44H   ;;SEMPRE NOS PARES  MESMO ESQUEMA QUE ACIMA
+					;;;;;;;;;;;;; O Y DOS TIROS DEVE TER  O FORMATO 0001 0LIN[BAIXO] OU 0000 0LIN [CIMA]
+					;; OU SEJA, CADA TIRO INDICA SE ESTÁ NA PARTE DE CIMA OU DE BAIXO DA LINHA, E QUAL LINHA
 
-
+MARCA_PARADA_TIROS EQU 056H
 
 
 ;;;;;; flags de movimentação dos inimigos na memória
 DIRECAO_INIMIGOS BIT 05H   ;;; ESQUERDA 1, DIREITA 0
 MUDOU_DIRECAO BIT 06H
 GAME_OVER		BIT	07H
-MAIOR_X			DATA	50H	
-MENOR_X			DATA	51H
+MAIOR_X			DATA	60H	
+MENOR_X			DATA	61H
+PRIMEIRA_LINHA_LIMPAR 	DATA	62H
 
 DESLOCAMENTO_INIMIGO EQU 10D
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -82,24 +85,39 @@ INICIO:
 	;;TIMER SETADO
 
 
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AGORA O BIXO VAI PEGAR:
+	BUTTONS         EQU P2
 	STARTINGX EQU 64D ; max = 116
 	STARTINGY EQU 7D
 	MOV PLAYERX, #STARTINGX
 	MOV PLAYERY, #STARTINGY
-	MOV BUTTONS, #0FFH
+	
 
 	CALL INICIALIZA_INIMIGOS
 	CALL IMPRIME_TELA_INICIAL
+	MOV BUTTONS, #0FFH
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;FUNÇÕES DO LCD A SEREM USADAS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;IMPRIME_TELA_INICIAL - INIMIGOS E NAVE DEVEM ESTAR INICIALIZADOS
+;MOVE_NAVE - POSICAO ANTIGA DA NAVE EM A
+;MATA_NAVE  - VAI ESCREVER A NAVE DENOVO EM STARTINGX E ATUALIZAR A MEMÓRIA
+;MATA_UM_INIMIGO - NÚMERO DO INIMIGO [INDEX NO VETOR] INDICADO POR A, SÓ DEPOIS COLOCAR FFH NA MEMÓRIA
+;MOVE_TODOS_OS_INIMIGOS_VIVOS - A FUNÇÃO DE MOVER OS INIMIGOS NA MEMÓRIA DEVE SER CHAMADA ANTES [ÓBVIO]
+;ESCREVE_GAME_OVER - SÓ CHAMAR, LIMPAR TODA A TELA E ESCREVER OU SÓ ESCREVER???
 		  
 	;POOOOOOOOOOOOOOLING:
-BUTTONS         EQU P2
+
 BUTTONS_PRESSED EQU 0FFH
-LEFT_BUTTON		EQU	P2.7
-RIGHT_BUTTON	EQU	P2.6
-FIRE_BUTTON		EQU	P2.5
-FILTER_ALL		EQU	00011111B
-FILTER_MOV		EQU 00111111B
+
+RIGHT_BUTTON	EQU	P2.2
+LEFT_BUTTON		EQU	P2.1
+FIRE_BUTTON		EQU	P2.0
+FILTER_ALL		EQU	11111000B
+FILTER_MOV		EQU 11111001B
 RIGHT_LIMIT 	EQU 116D
 	
 	CHECK_FIRE:
@@ -223,13 +241,59 @@ MOVE_MEMORIA_INIMIGOS:
 ;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE OS INIMIGOS, DE ACORDO
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; INICIALIZA OS INIMIGOS COM A TABELA DE INIMIGOS LOGO ABAIXO;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+INICIALIZA_INIMIGOS:
+											  ; PREENCHE OS DADOS DOS INIMIGOS
+	;MOV PRIMEIRA_VEZ, #01H   ; DIZ QUE JA INICIO
+	PUSH AR0
+	PUSH AR1	
+	MOV A,#ENEMIES ;COMECA COM O VALOR DA X DO INIMIGO
+	MOV R0, A
+	MOV DPTR,#TAB_INIMIGOS
+	CLR A
+	MOV R1, A
+	
+	LOOP_INICIA_INIMIGOS:	
+	MOV A, R1
+	MOVC A,@A + DPTR
+	MOV @R0, A
+	INC R0
+	INC R1
+	CJNE R1, #016D,LOOP_INICIA_INIMIGOS ; SÃO 8 INIMIGOS
+	POP AR1
+	POP AR0 
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+TAB_INIMIGOS:
+	;COORDENADAS Dos inimigos:
+	;      X,    Y ,				   
+	DB 15D, 00H   
+	DB 35D, 00H
+	DB	55D, 00H
+	DB	 75D, 00H
+	DB 15D, 02H   
+	DB 35D, 02H
+	DB	 55D, 02H
+	DB	 75D, 02H
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	   
 ;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE MOVE OS INIMIGOS HORIZONTALMENTE NA MEMÓRIA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 MOVE_MEMORIA_TODOS_INIMIGOS_VIVOS:
 	PUSH AR0
 	PUSH AR1
 	PUSH AR2
+	PUSH AR5
+	MOV PRIMEIRA_LINHA_LIMPAR, #0FH
+
 	MOV R1, #NUMERO_INIMIGOS	
 	MOV R0, #ENEMIES
 ONE_MORE_ENEMY:	
@@ -239,7 +303,13 @@ ONE_MORE_ENEMY:
 	XRL A, R2
 	JZ MOVE_PROXIMO_INIMIGO
 
-	MOV A, R2
+	INC R0
+	CALL ATUALIZA_PRIMEIRA_LINHA_LIMPAR
+	DEC R0	 ;VOLTA PARA A POSIÇÃO ANTERIOR
+	
+
+
+	MOV A, R2  ;;X DO INIMIGO
 	JB DIRECAO_INIMIGOS, MOVE_ESQUERDA
 
 move_direita:	
@@ -261,12 +331,33 @@ MOVE_PROXIMO_INIMIGO:
 	POP AR1
 	POP AR0
  RET
+
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  ;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE OS INIMIGOS NA MEMORIA, HORIZONTALMENTE
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;; FUNÇAO QUE ESCREVE QUAL A PRIMEIRA LINHA A LIMPAR, NUMA VARIÁVEL	 ESPECIFICA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ATUALIZA_PRIMEIRA_LINHA_LIMPAR:		 ;;;; DEFINE QUAL A PRIMEIRA LINHA A LIMPAR	, RECEBE O R0 APONTANDO PRÁ Y
+
+	MOV B, @R0 ;;Y DO INIMIGO			
+	MOV A, PRIMEIRA_LINHA_LIMPAR
+	SUBB A,B
+	JNC	LINHA_LIMPAR
+
+	RET
+LINHA_LIMPAR:
+	MOV PRIMEIRA_LINHA_LIMPAR, @R0
+
+	RET
+
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE DEFINE QUAL A PRIMEIRA LINHA A LIMPAR
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;; FUNÇÃO QUE FAZ OS INIMIGOS IREM OARA A LINHA DE BAIXO
+;;;;;;;;;;;;;;;; FUNÇÃO QUE FAZ OS INIMIGOS IREM pARA A LINHA DE BAIXO
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 MUDA_LINHA_MEMORIA_TODOS_INIMIGOS_VIVOS:
@@ -283,6 +374,8 @@ ONE_MORE_ENEMY_1:
 	XRL A, R2
 	JZ MOVE_PROXIMO_INIMIGO
 
+	CALL ATUALIZA_PRIMEIRA_LINHA_LIMPAR
+
 	MOV A, R2
 	ADD A, #01H ;VAI PARA A LINHA DE BAIXO
 		
@@ -294,7 +387,8 @@ INDICA_GAME_OVER:
 		POP AR2
 		POP AR1
 		POP AR0
- 		RET				;VOLTA IMEDIATAMENTE E NEM PRECISA MAIS ESCREVER, JÁ MATA O BIXO E DEU MANO. E DEU
+ 		RET	
+					;VOLTA IMEDIATAMENTE E NEM PRECISA MAIS ESCREVER, JÁ MATA O BIXO E DEU MANO. E DEU
 MOVE_PROXIMO_INIMIGO_1:
 	INC R0
 	INC R0 ;;VAI PARA O y DO INIMIGO SEGINTE
@@ -356,45 +450,7 @@ ESSE_EH_MENOR:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;; INICIALIZA OS INIMIGOS COM A TABELA DE INIMIGOS LOGO ABAIXO;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-INICIALIZA_INIMIGOS:
-											  ; PREENCHE OS DADOS DOS INIMIGOS
-	;MOV PRIMEIRA_VEZ, #01H   ; DIZ QUE JA INICIO
-	PUSH AR0
-	PUSH AR1	
-	MOV A,#ENEMIES ;COMECA COM O VALOR DA X DO INIMIGO
-	MOV R0, A
-	MOV DPTR,#TAB_INIMIGOS
-	CLR A
-	MOV R1, A
-	
-	LOOP_INICIA_INIMIGOS:	
-	MOV A, R1
-	MOVC A,@A + DPTR
-	MOV @R0, A
-	INC R0
-	INC R1
-	CJNE R1, #016D,LOOP_INICIA_INIMIGOS ; SÃO 8 INIMIGOS
-	POP AR1
-	POP AR0 
-	RET
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-TAB_INIMIGOS:
-	;COORDENADAS DO VEICULO:
-	;      X,    Y ,				   
-	DB 15D, 00H   
-	DB 35D, 00H
-	DB	55D, 00H
-	DB	 75D, 00H
-	DB 15D, 02H   
-	DB 35D, 02H
-	DB	 55D, 02H
-	DB	 75D, 02H
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -454,10 +510,111 @@ MOVE_NAVE:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE PEGA OS DADOS DA MEMÓRIA E DESENHA A NAVE NA TELA;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE MOVE NA TELA TODOS OS TIROS, INIMIGOS E DA NAVE ;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MOVE_TIROS_LCD:
+	CALL MOVE_TIROS_INIMIGOS_LCD
+	CALL MOVE_TIROS_NAVE_LCD
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE TODOS OS TIROS NO LCD ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+TIRO_METADE_BAIXO BIT 0FH
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE MOVE OS TIROS DOS INIMIGOS, BASEADO NOS DADOS DA MEMÓRIA;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MOVE_TIROS_INIMIGOS_LCD:
+	PUSH AR0
+
+	MOV R0, #ENEMY_SHOTS
+
+PROXIMO_TIRO_INIMIGO:	
+	MOV A, @R0			;;PEGA O X
+	ADD A, #040H
+	CALL ESCREVE_COMANDO_LCD   ;;COLOCA NA POSIÇÃO X CERTA
+	INC R0 
+	INC R0	;;PEGA O Y
+	MOV A, @R0
+	CALL TRADUZ_Y_TIRO ;;A FICA COM O Y CERTO, BIT TIRO_METADE_BAIXO FICA CORRETO
+	JB TIRO_METADE_BAIXO, ESCREVE_TIRO_METADE_BAIXO
+ESCREVE_TIRO_METADE_CIMA:
+	CALL LIMPA_LINHA_ANT	  ;;A JÁ ESTÁ COM A POSIÇÃO Y 
+
+	ADD A, #0B8H
+	CALL ESCREVE_COMANDO_LCD  ;;COLOCA NO Y CERTO
+	MOV A, #06H ;;00000110
+	CALL ESCREVE_DADO_LCD
+	JMP VERIFICA_HA_PROX_TIRO
+
+ESCREVE_TIRO_METADE_BAIXO: 
+	
+	ADD A, #0B8H
+	CALL ESCREVE_COMANDO_LCD ;;COLOCA NO Y CERTO
+	MOV A, #060H ;;01100000
+	CALL ESCREVE_DADO_LCD
+
+VERIFICA_HA_PROX_TIRO:
+	 INC R0
+	 INC R0 ;;APONTA PROX X ENEMY_SHOTS
+	 CJNE @R0, #MARCA_PARADA_TIROS , PROXIMO_TIRO_INIMIGO ;;MARCA DE PARADA INDICA QUE NÃO TEM MAIS TIROS
+
+	 POP AR0
+	 RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE OS TIROS DOS INIMIGOS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;; FUNÇÃO QUE MOVE OS TIROS DA NAVE, BASEADO NOS DADOS DA MEMÓRIA;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MOVE_TIROS_NAVE_LCD:
+	PUSH AR0
+
+	MOV R0, #PLAYER_SHOTS
+
+PROXIMO_TIRO_NAVE:	
+	MOV A, @R0			;;PEGA O X
+	ADD A, #040H
+	CALL ESCREVE_COMANDO_LCD   ;;COLOCA NA POSIÇÃO X CERTA
+	INC R0 
+	INC R0	;;PEGA O Y
+	MOV A, @R0
+	CALL TRADUZ_Y_TIRO ;;A FICA COM O Y CERTO, BIT TIRO_METADE_BAIXO FICA CORRETO
+	JB TIRO_METADE_BAIXO, ESCREVE_TIRO_METADE_BAIXO
+ESCREVE_TIRO_NAVE_METADE_CIMA:
+
+	ADD A, #0B8H
+	CALL ESCREVE_COMANDO_LCD  ;;COLOCA NO Y CERTO
+	MOV A, #06H ;;00000110
+	CALL ESCREVE_DADO_LCD
+	JMP VERIFICA_HA_PROX_TIRO
+
+ESCREVE_TIRO_NAVE_METADE_BAIXO:
+	CALL LIMPA_LINHA_SEGUINTE ;; A JÁ ESTÁ COM Y CERTO  
+	
+	ADD A, #0B8H
+	CALL ESCREVE_COMANDO_LCD ;;COLOCA NO Y CERTO
+	MOV A, #060H ;;01100000
+	CALL ESCREVE_DADO_LCD
+
+VERIFICA_HA_PROX_TIRO_NAVE:
+	 INC R0
+	 INC R0 ;;APONTA PROX X PLAYER_SHOTS
+	 CJNE @R0, #MARCA_PARADA_TIROS , PROXIMO_TIRO_NAVE ;;MARCA DE PARADA INDICA QUE NÃO TEM MAIS TIROS
+
+	 POP AR0
+	 RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE OS TIROS DA NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PEGA A POSIÇÃO DA MEMÓRIA E LIMPA A NAVE. DEPOIS DE UM TEMPO ESCREVE ELA DENOVO NO MEIO, X =59 D;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PEGA A POSIÇÃO DA MEMÓRIA E LIMPA A NAVE. DEPOIS DE UM TEMPO ESCREVE ELA DENOVO EM STARTINGX;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 MATA_NAVE:
 	PUSH AR1
@@ -469,8 +626,9 @@ MATA_NAVE:
 	MOV R1, #0FH
 	DJNZ R1, $
 	CALL DESENHA_MORTE_NAVE	;DESENHA A MORTE E LIMPA DEPOIS DE UM TEMPO
-	MOV	 A, #59D
-	CLR SELECT
+	MOV PLAYERX, #STARTINGX
+	MOV	 A, #STARTINGX
+	CALL TRADUZ_X
 	CALL DESENHA_NAVE
 	POP AR1
 	RET
@@ -483,22 +641,17 @@ MATA_NAVE:
 ;;;;;;;;;;;;;;;;;;; MATA UM INIMIGO. QUAL INIMIGO É INDICADO POR A, AS POSIÇÕES DE MEMÓRIA DEVEM SER VÁLIDAS;;;;
 ;;;;;;;;;;;;;;;;;;;; SO DEPOIS ZERAR AS POSIÇÕES DE MEMÓRIA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 MATA_UM_INIMIGO:
-	PUSH AR1
-	MOV DPTR, #INIMIGOS 
-	MOV B, A
-	ADD A, B ;;PARA APONTAR PARA O LUGAR CORRETO
-	MOV R1, A ;;SALVA O LUGAR CORRETO
-	MOVC A, @A+DPTR ;; A AGORA TEM O X DO INIMIGO
+	PUSH AR0
+	MOV R0, #ENEMIES
+	ADD A, R0
+	ADD A, R0 
+	MOV R0, A ;;APONTA PARA O X CERTO
+	MOV A, @R0 ;;A FICA COM O X DO INIMIGO
 	CALL TRADUZ_X ;;A FICA COM O X CORRETO E O BIT SELECT FICA CERTO
-	MOV B, A ;; SALVA O X CORRETO
-	MOV A, R1;; VOLTA PARA O LUGAR CORRETO
-	INC A ;;PEGAR O Y AGORA
-	MOVC A, @A+DPTR	  ;;A COM O Y
-	MOV R1, A
-	MOV A, B	;;; A FICA COM O X CORRETO
-	MOV B, R1 	;;;;;;;;;;;;;;;;; B FICA COM O Y CORRETO
+	INC R0
+	MOV B, @R0	;;B FICA COM O Y
 	CALL LIMPA_INIMIGO
-	POP AR1
+	POP AR0
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE PEGA OS DADOS DA MEMÓRIA DE UM INIMIGO E MATA ELE ;;;;;;;;;;;;
@@ -508,11 +661,12 @@ MATA_UM_INIMIGO:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;LIMPA DUAS COLUNAS E ESCREVE NOVAMENTE OS INIMIGOS TODOS, NOS LUGARES ONDE A MEMÓRIA APONTA ;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; A PRIMEIRA LINHA A LIMPAR DEVE SER INDICADA POR A ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 MOVE_TODOS_OS_INIMIGOS_VIVOS:
 	PUSH AR1
 	PUSH AR2
 	PUSH AR0
+	MOV A, PRIMEIRA_LINHA_LIMPAR
 	CALL LIMPA_DUAS_LINHAS
 	MOV R0, #ENEMIES	;SALVA O ENDEREÇO DOS INIMIGOS
 
@@ -551,6 +705,7 @@ PROXIMO:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; escreve GAME OVER NA TELA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ESCREVE_GAME_OVER:
+		CALL CLEAR_DISPLAY
 PRIMEIRA_LINHA_ESQ:
 		CLR SELECT
 		MOV A, #40H
@@ -730,6 +885,68 @@ ESCREVE_E:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DEPOIS DAQUI, NÃO USAR MAIS NENHUMA FUNÇÃO DO DISPLAY!!! ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE TRADUZ O Y, DADO EM A, NO FORMATO 0001 0LIN[BAIXO] OU 0000 0LIN [CIMA]
+;;;;;;;;;;;;;;;;;;;;;;E COLOCA EM A A LINHA E SETA/CLR O BIT TIRO_METADE_BAIXO ;;;;;;;;;;;;;;;;;;;;;;;
+TRADUZ_Y_TIRO:
+	PUSH AR1
+	MOV R1, A ;;SALVA O VALOR
+	ANL A, #00010000B ;;FILTRO PARA O BIT BAIXO/CIMA
+	JNZ BIT_BAIXO
+BIT_CIMA:
+	CLR TIRO_METADE_BAIXO
+
+TRADUZ_LINHA:
+	MOV A, R1
+	ANL A, #00000111B ;;FILTRO PARA OS BITS QUE DEFINEM A LINHA
+	;;A ESTÁ AGORA COM O Y CERTO
+	POP AR1
+	RET
+
+BIT_BAIXO:
+	SETB TIRO_METADE_BAIXO
+	JMP TRADUZ_LINHA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE TRADUZ O Y DOS TIROS ;;;;;;;;;;;;;;;;;		
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE LIMPA A COLUNA EXATA DA LINHA ANTERIOR, PARA MOVER O TIRO
+;;;;;;;;;;;;;;;;;;;;;;;; RECEBE EM A O Y CORRETO, O LCD JÁ ESTÁ COM O X CERTO
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+LIMPA_LINHA_ANT:
+	 PUSH AR1
+	MOV R1, A ;;SALVA O Y  CORRETO
+	DEC A
+	ADD A, #0B8H
+	CALL ESCREVE_COMANDO_LCD ;;COLOCA NO Y CERTO
+	MOV A, #00H
+	CALL ESCREVE_DADO_LCD
+	MOV A, R1
+	POP AR1
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE LIMPA A LINHA ANTERIOR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE LIMPA A COLUNA EXATA DA LINHA SEGUINTE, PARA MOVER O TIRO
+;;;;;;;;;;;;;;;;;;;;;;;; RECEBE EM A O Y CORRETO, O LCD JÁ ESTÁ COM O X CERTO
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+LIMPA_LINHA_SEGUINTE:
+	 PUSH AR1
+	MOV R1, A ;;SALVA O Y  CORRETO
+	INC A
+	ADD A, #0B8H
+	CALL ESCREVE_COMANDO_LCD ;;COLOCA NO Y CERTO
+	MOV A, #00H
+	CALL ESCREVE_DADO_LCD
+	MOV A, R1
+	POP AR1
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE LIMPA A LINHA SEGUINTE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; RECEBE A POSIÇÃO X DA NAVE EM A, DESENHA A MORTE, E DEPOIS DE UM TEMPO APAGA ;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 DESENHA_MORTE_NAVE:
@@ -772,8 +989,7 @@ DESENHA_MORTE_NAVE:
 			  CALL ESCREVE_DADO_LCD
 			   
 			   ;;; LIMPA A NAVE DEPOIS DE UM TEMPO
-			  MOV R2, #0FH
-			  DJNZ R2, $
+			  CALL DELAY
 			  MOV A, R1
 			  CALL LIMPA_NAVE
 			  POP AR2
