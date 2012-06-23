@@ -53,6 +53,7 @@ ENEMY_SHOTS DATA 44H
 
 
 
+
 ;;;;;; flags de movimentação dos inimigos na memória
 DIRECAO_INIMIGOS BIT 05H   ;;; ESQUERDA 1, DIREITA 0
 MUDOU_DIRECAO BIT 06H
@@ -62,6 +63,7 @@ MENOR_X			DATA	51H
 
 DESLOCAMENTO_INIMIGO EQU 10D
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 
 
