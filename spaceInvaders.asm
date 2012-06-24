@@ -929,14 +929,14 @@ IMPRIME_INIMIGOS:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;; PEGA A POSIÇÃO DA MEMÓRIA E ESCREVE A NAVE, A POSIÇÃO X ANTIGA DA NAVE FICA EM A
 MOVE_NAVE:
-   	CLR TR0
+   	CLR ET0
 	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
 	CALL LIMPA_NAVE	 ;; LIMPA A NAVE DA TELA
 
 	MOV A, PLAYERX;A FICA COM A POSIÇÃO x DA NAVE
 	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
 	CALL DESENHA_NAVE  ;; DESENHA A NAVE NO NOVO LUGAR DA TELA
-	SETB TR0
+	SETB ET0
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE PEGA OS DADOS DA MEMÓRIA E DESENHA A NAVE NA TELA;;;;;;;;
