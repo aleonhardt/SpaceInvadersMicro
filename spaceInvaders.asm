@@ -38,6 +38,8 @@ PLAYERX DATA 30H
 PLAYERY DATA 31H
 PLAYERLIFE DATA 32H
 
+GAME_OVER BIT 04H
+
 ENEMIES DATA 33H
 ;TABELA DE INIMIGOS
 LAST_ENEMY DATA 41H
@@ -55,7 +57,7 @@ MARCA_PARADA_TIROS EQU 056H
 ;;;;;; flags de movimentação dos inimigos na memória
 DIRECAO_INIMIGOS BIT 05H   ;;; ESQUERDA 1, DIREITA 0
 MUDOU_DIRECAO BIT 06H
-GAME_OVER		BIT	07H
+
 MAIOR_X			DATA	60H	
 MENOR_X			DATA	61H
 PRIMEIRA_LINHA_LIMPAR 	DATA	62H
@@ -84,6 +86,7 @@ INICIO:
 	;SETB TR0
 	;;TIMER SETADO
 
+	;CLR GAME_OVER
 
 
 
@@ -201,21 +204,65 @@ TRATA_TIM0:
 VOLTA_TIM0:
 	RETI
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;	  função que decide se o inimigo vai atirar, e chama a função de atirar ;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+RAND_TIROS_INIMIGOS:
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;; FUNÇÃO QUE INICIALIZA OS DADOS NECESSÁRIOS PARA O JOGO;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+INICIALIZA_DADOS_JOGO:
+	CLR LED1
+	CLR LED2
+	CLR LED3 ;;DEFINE AS 3 VIDAS DO BIXINHO
+	CLR GAME_OVER
+	MOV PLAYERX, #STARTINGX
+	MOV PLAYERY, #STARTINGY
+	CALL INICIALIZA_INIMIGOS
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO DE INICIALIZAÇÃO ;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; FUNÇÃO QUE MATA A NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;; CHAMA A FUNÇÃO DE MATAR A NAVE NO LCD E CASO ACABE AS VIDAS, DÁ GAME OVER ;;;;;;;;;;;;;;;;
+MATA_NAVE:
+	CALL MATA_NAVE_LCD
+	MOV PLAYERX, #STARTINGX			;;VOLTA PARA A POSIÇÃO INICIAL
+	JB LED3, SEGUNDA_VIDA			;SE JÁ PERDEU UMA VIDA, OLHA A PRÓXIMA
+	SETB LED3						;SE NÃO, APAGA AQUELA VIDA [AGORA TEM 2]
+	RET
+SEGUNDA_VIDA:
+	JB LED2, TERCEIRA_VIDA		;;SE JA PERDEU DUAS VIDAS, OLHA A PRÓXIMA
+	SETB LED2					;;SE NÃO, APAGA AQUELA [AGORA TEM 1]
+	RET
+TERCEIRA_VIDA:
+	JB LED3, SEM_VIDAS			;;SE JÁ VERDEU 3 VIDAS, ENTÃO É GAME OVER
+	SETB LED1				;; SE NÃO, APAGA A ÚLTIMA VIDA [AGORA NÃO TEM MAIS VIDAS]
+	RET
+SEM_VIDAS:
+	CALL ITS_GAME_OVER_MAN ;;SE ACABARAM TODAS AS VIDAS, É GAME OVER. CHAMA O GAME OVER
+	RET	
+
+;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MATA A NAVE;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE CONTROLA O GAME OVER, DEVE SER CHAMADA SEMPRE, E EM PRIMEIRO LUGAR
+;;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO CHAMADA QUANDO DÁ GAME OVER ;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-CONTROLA_GAME_OVER:
-	JNB GAME_OVER, AINDA_NAO_ACABOU
-				;;SE O BIT GAME OVER TÁ LIGADO
+ITS_GAME_OVER_MAN:
 	 CALL ESCREVE_GAME_OVER
 
 	 JMP $ ;;CANCELA TODO O OUTRO PROCESSAMENTO, FICA AQUI PARA SEMPRE
 	 RET 	;;LOL NEVER
-AINDA_NAO_ACABOU:
-		RET	 ;;VOLTA PARA O PROCESSAMENTO NORMAL
+
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE CONTROLA O GAME OVER ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO DO GAME OVER ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -255,9 +302,13 @@ MOVE_MEMORIA_INIMIGOS:
 
   MUDA_LINHA:
   	CALL MUDA_LINHA_MEMORIA_TODOS_INIMIGOS_VIVOS
+	JB GAME_OVER, CHAMA_GAME_OVER
 
 	FIM_MOVIMENTACAO:
 	RET
+CHAMA_GAME_OVER:
+	CALL ITS_GAME_OVER_MAN
+	RET		;;LOL NUNCA VAI VOLTAR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE OS INIMIGOS, DE ACORDO
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -271,7 +322,11 @@ INICIALIZA_INIMIGOS:
 											  ; PREENCHE OS DADOS DOS INIMIGOS
 	;MOV PRIMEIRA_VEZ, #01H   ; DIZ QUE JA INICIO
 	PUSH AR0
-	PUSH AR1	
+	PUSH AR1
+
+	SETB DIRECAO_INIMIGOS	  ;;INICIALIZA OS INIMIGOS ANDANDO PRÁ ESQUERDA
+	CLR MUDOU_DIRECAO
+		
 	MOV A,#ENEMIES ;COMECA COM O VALOR DA X DO INIMIGO
 	MOV R0, A
 	MOV DPTR,#TAB_INIMIGOS
@@ -639,7 +694,7 @@ VERIFICA_HA_PROX_TIRO_NAVE:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PEGA A POSIÇÃO DA MEMÓRIA E LIMPA A NAVE. DEPOIS DE UM TEMPO ESCREVE ELA DENOVO EM STARTINGX;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-MATA_NAVE:
+MATA_NAVE_LCD:
 	PUSH AR1
 	MOV A, PLAYERX	;;A FICA COM A POSIÇÃO x DA NAVE
 	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
