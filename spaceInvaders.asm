@@ -198,11 +198,111 @@ TRATA_TIM0:
 VOLTA_TIM0:
 	RETI
 
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE TRADUZ O Y, DADO EM A, NO FORMATO 0001 0LIN[BAIXO] OU 0000 0LIN [CIMA]
+;;;;;;;;;;;;;;;;;;;;;;E COLOCA EM A A LINHA E SETA/CLR O BIT TIRO_METADE_BAIXO ;;;;;;;;;;;;;;;;;;;;;;;
+TRADUZ_Y_TIRO:
+	PUSH AR1
+	MOV R1, A ;;SALVA O VALOR
+	ANL A, #00010000B ;;FILTRO PARA O BIT BAIXO/CIMA
+	JNZ BIT_BAIXO
+BIT_CIMA:
+	CLR TIRO_METADE_BAIXO
+
+TRADUZ_LINHA:
+	MOV A, R1
+	ANL A, #00000111B ;;FILTRO PARA OS BITS QUE DEFINEM A LINHA
+	;;A ESTÁ AGORA COM O Y CERTO
+	POP AR1
+	RET
+
+BIT_BAIXO:
+	SETB TIRO_METADE_BAIXO
+	JMP TRADUZ_LINHA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE TRADUZ O Y DOS TIROS ;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; FUNCAO QUE CONVERTE UMA LINHA E UM BIT PARA O FORMATO DO Y LISTA DE TIROS ;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;LINHA DADA EM A E BIT EMBAIXO DADO EM C. RETORNO EM A;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CONVERTE_Y_TIRO:
+	JC ADICIONA_BIT_EMBAIXO
+	RET		;; SE O BIT NÃO ESTÁ LIGADO, ENTÃO NÃO MUDA NADA E RETORNA O A IGUAL
+ADICIONA_BIT_EMBAIXO:
+	 ADD A, #016D ;;SETA O BIT CERTO, DEIXA O RESTO INTACTO
+	 RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;; FIM DA FUNÇÃO QUE CONVERTE O Y DOS TIROS ;;;;;;;;;;;;;;;;;;
+
+
+
+
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;	  função que decide se o inimigo vai atirar, e chama a função de atirar ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-RAND_TIROS_INIMIGOS:
+INIMIGO_ATIRAR:
+	PUSH AR0
+	PUSH AR1
 
+	MOV R0, #ENEMIES
+	MOV R1, PLAYERX
+	  ;;;;;; AINDA NÃO ACABEI!!!!
+
+
+	  RET
+
+;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE FAZ O INIMIGO ATIRAR QUANDO APROPRIADO;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+ADICIONA_TIRO_POSICAO BIT 09H
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;; ADICIONA UM TIRO NA PILHA DE ENEMY_SHOTS ;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;X EM A, Y EM B E TIRO_EMBAIXO EM C ;;;;;;;;;;;;;;;;;;;;;;;
+ADICIONA_TIRO_INIMIGO:
+	 PUSH AR0
+	 PUSH AR1
+	 MOV R1, A
+	 MOV ADICIONA_TIRO_POSICAO, C
+	 MOV R0, #ENEMY_SHOTS
+	 CALL PERCORRE_LISTA_TIROS_ATE_PARADA
+	 ;; R0 AGORA ESTÁ NA MARCA DE PARADA
+	 MOV A, R1
+	 MOV @R0, A ;;COLOCA O X NO FIM DA FILA
+	 INC R0
+	 INC R0		;;R0 APONTA PARA O Y
+	 MOV C, ADICIONA_TIRO_POSICAO
+	 MOV A, B
+	 CALL CONVERTE_Y_TIRO
+	 MOV @R0, A ;;COLOCA O Y CONVERTIDO NO LUGAR CERTO
+	 INC R0
+	 INC R0
+	 MOV @R0, #MARCA_PARADA_TIROS
+	
+
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;;; PERCORRE QUALQUER LISTA DE TIROS ATÉ A PARADA ;;;;;;;;;;;;;;;;;;
+ ;;POSIÇÃO INICIAL DADA EM R0, PODE SER QUALQUER UMA DELAS. DEVOLVE R0 COM A POSIÇÃO DE PARADA
+PERCORRE_LISTA_TIROS_ATE_PARADA: 
+	
+	MOV A, @R0
+
+	SUBB A, #MARCA_PARADA_TIROS
+	JZ ACHEI_A_MARCA_PARADA
+PERCORRE_PROXIMO_TIRO:
+	MOV A, R0
+	ADD A, #04D ;;VAI PARA O PRÓXIMO X
+	MOV R0, A
+	MOV A, @R0
+	CJNE A, #MARCA_PARADA_TIROS, PERCORRE_PROXIMO_TIRO
+
+ACHEI_A_MARCA_PARADA:
+	RET 		;R0 VAI CONTINUAR APONTANDO PARA A MARCA DE PARADA
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;; FUNÇÃO QUE INICIALIZA OS DADOS NECESSÁRIOS PARA O JOGO;;;;;;;;;;;;;;;;;;;;
@@ -958,28 +1058,7 @@ ESCREVE_E:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE TRADUZ O Y, DADO EM A, NO FORMATO 0001 0LIN[BAIXO] OU 0000 0LIN [CIMA]
-;;;;;;;;;;;;;;;;;;;;;;E COLOCA EM A A LINHA E SETA/CLR O BIT TIRO_METADE_BAIXO ;;;;;;;;;;;;;;;;;;;;;;;
-TRADUZ_Y_TIRO:
-	PUSH AR1
-	MOV R1, A ;;SALVA O VALOR
-	ANL A, #00010000B ;;FILTRO PARA O BIT BAIXO/CIMA
-	JNZ BIT_BAIXO
-BIT_CIMA:
-	CLR TIRO_METADE_BAIXO
-
-TRADUZ_LINHA:
-	MOV A, R1
-	ANL A, #00000111B ;;FILTRO PARA OS BITS QUE DEFINEM A LINHA
-	;;A ESTÁ AGORA COM O Y CERTO
-	POP AR1
-	RET
-
-BIT_BAIXO:
-	SETB TIRO_METADE_BAIXO
-	JMP TRADUZ_LINHA
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE TRADUZ O Y DOS TIROS ;;;;;;;;;;;;;;;;;		
+		
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE LIMPA A COLUNA EXATA DA LINHA ANTERIOR, PARA MOVER O TIRO
@@ -1130,7 +1209,7 @@ TEM_QUE_MUDAR:
 		JB SELECT, NAO_MUDA
 		INC B
 		MOV A, B
-		SUBB A, #63D
+		SUBB A, #64D
 		JZ MUDA_LADO_CALL
 		RET
 MUDA_LADO_CALL:
