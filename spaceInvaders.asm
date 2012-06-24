@@ -54,7 +54,7 @@ ENEMY_SHOTS DATA 44H   ;;SEMPRE NOS PARES  MESMO ESQUEMA QUE ACIMA
 					;;;;;;;;;;;;; O Y DOS TIROS DEVE TER  O FORMATO 0001 0LIN[BAIXO] OU 0000 0LIN [CIMA]
 					;; OU SEJA, CADA TIRO INDICA SE ESTÁ NA PARTE DE CIMA OU DE BAIXO DA LINHA, E QUAL LINHA
 
-MARCA_PARADA_TIROS EQU 056H
+MARCA_PARADA_TIROS EQU 0F5H
 
 
 ;;;;;; flags de movimentação dos inimigos na memória
@@ -269,27 +269,131 @@ ADICIONA_BIT_EMBAIXO:
 ;;;;;;;;; FIM DA FUNÇÃO QUE CONVERTE O Y DOS TIROS ;;;;;;;;;;;;;;;;;;
 
 
-
-
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;	  função que decide se o inimigo vai atirar, e chama a função de atirar ;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;SO É CHAMADA DEPOIS DE MOVER OS INIMIGOS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 INIMIGO_ATIRAR:
 	PUSH AR0
-	PUSH AR1
-
-	MOV R0, #ENEMIES
-	MOV R1, PLAYERX
-	  ;;;;;; AINDA NÃO ACABEI!!!!
 
 
-	  RET
+	;MOV R0, #ENEMIES
+	;MOV A, PLAYERX
+	CALL ENCONTRA_INIMIGO_MESMO_X	;;O A ESTARÁ APONTANDO PARA O INIMIGO COM O MESMO X DA NAVE. SE NÃO TEM NENHUM, A=0
+	JZ NAO_ATIRA
+	
+ATIRA:								  ;;CASO HAJA UM INIMIGO COM O MESMO X DA NAVE
+		PUSH AR1					  
+	   MOV R0, A				;; FAZ O R0 APONTAR PARA O INIMIGO CERTO
+	   ADD A, #08D				;; SERÁ QUE O INIMIGO DA FRENTE EXISTE?
+	   MOV R1, A
+	   MOV A, @R1
+	   MOV R1, A
+		MOV A, #0FFH ;;JÁ ESTA MORTO
+		XRL A, R1
+		JZ DISPARA_TIRO_DE_TRAS
+
+DISPARA_TIRO_DA_FRENTE:
+	  	MOV A, @R1	;R1 ESTÁ APONTANDO PARA O x DO INIMIGO DA FRENTE
+		ADD A, #5D	;;PARTE DO MEIO DO INIMIGO
+		CLR C		;; DA PARTE DE CIMA DA LINHA
+		INC R1		;;APONTA PARA O Y DO INIMIGO
+		MOV B, @R1 	; B FICA COM O Y CERTO
+		CALL ADICIONA_TIRO_INIMIGO
+		
+		POP AR1	   ;; JA ATIROU, VOLTA
+		POP AR0
+		RET
+
+DISPARA_TIRO_DE_TRAS:
+		MOV A, @R0		;;R0 AINDA ESTÁ APONTANDO PARA O X DO INIMIGO DE TRAS
+		ADD A, #5D	;;PARTE DO MEIO DO INIMIGO
+		CLR C		;; DA PARTE DE CIMA DA LINHA
+		INC R0		;;APONTA PARA O Y DO INIMIGO
+		MOV B, @R0 	; B FICA COM O Y CERTO
+		CALL ADICIONA_TIRO_INIMIGO	
+		
+		POP AR1		;JA ATIROU, VOLTA
+		POP AR0
+		RET	
+	  
+NAO_ATIRA:
+		POP AR0	
+		RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE FAZ O INIMIGO ATIRAR QUANDO APROPRIADO;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE DESCOBRE SE TEM ALGUM INIMIGO PASSANDO POR CIMA DA NAVE ;;;;;;;
+;;;;;;;;;;;;;;;;;;;;; SE TIVER, COLOCA O ENDEREÇO DELE NO A, SE NÃO, A=0 ;;;;;;;;;;;;; ;;;;;;;;;
+
+ENCONTRA_INIMIGO_MESMO_X:
+	PUSH AR0
+	PUSH AR1
+	PUSH AR2
+
+	MOV R0, #ENEMIES
+	MOV B, PLAYERX
+	MOV R1, #NUMERO_INIMIGOS
+
+PROXIMO_INIMIGO_MESMO_X:
+	 MOV A, @R0
+	MOV R2, A
+	MOV A, #0FFH ;;JÁ ESTA MORTO
+	XRL A, R2
+	JZ COMPARA_X_PROXIMO_INIMIGO
+	
+	CALL ESTA_NA_MIRA				 ;; SE NÃO ESTÁ MORTO, SERÁ QUE ESTÁ SOBRE A NAVE??
+	JZ ESTA_SOBRE_NAVE								;; A=0 SE ESTÁ SOBRE A NAVE
+											 ;; SE NÃO, OLHA O PRÓXIMO
+COMPARA_X_PROXIMO_INIMIGO:
+	INC R0
+	INC R0 		 ;;APONTA PARA O PROXIMO X
+	DJNZ R1, PROXIMO_INIMIGO_MESMO_X
+
+	MOV A,#00H ;;NENHUM INIMIGO ESTÁ SOBRE A NAVE :( 
+	POP AR2
+	POP AR1
+	POP AR0
+	RET
+
+ESTA_SOBRE_NAVE:
+	MOV A, @R0 ;;X DO INIMIGO QUE ESTÁ SOBRE A NAVE
+	POP AR2
+	POP AR1
+	POP AR0
+	RET			   ;JA ACHOU, PODE SER
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;; FIM DA FUNÇÃO VÊ SE ALGUM INIMIGO ESTÁ SOBRE A NAVE ;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;; FUNÇÃO QUE DEFINE SE O INIMIGO COM X NO A ESTÁ SOBRE ALGUM PONTO DA NAVE;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;DEVOLVE A=0H SE ESTIVER NA MIRA E A=FFH SE NAO ESTIVER ;;;;;;;;;;;;;;;;;;
+ESTA_NA_MIRA:
+	PUSH AR0
+	MOV B, PLAYERX
+	MOV R0, #11D ;;OLHA POR TODOS OS PONTOS DA NAVE
+	ADD A, #5D	;;SE O MEIO DO INIMIGO ESTÁ SOBRE A NAVE
+PROXIMA_POSICAO_NAVE:
+	XRL A, B	 ;;SE A POSIÇÃO DA NAVE E A DO CANHAO É IGUAL, TA NA MIRA
+	JZ NA_MIRA
+	INC B
+	DJNZ R0, PROXIMA_POSICAO_NAVE ;;SE NAO TENTA NA PROXIMA POSICAO DA NAVE
+NAO_ESTA_NA_MIRA:
+	  MOV A, #0FFH
+	  POP AR0
+	  RET
+NA_MIRA:
+	MOV A, #00H
+	POP AR0
+	RET
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE DEFINE SE O INIMIGO ESTA SOBRE A NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	  
+
 
 ADICIONA_TIRO_POSICAO BIT 09H
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -502,7 +606,7 @@ ONE_MORE_ENEMY:
 	MOV R2, A
 	MOV A, #0FFH ;;JÁ ESTA MORTO
 	XRL A, R2
-	JZ MOVE_PROXIMO_INIMIGO
+	JZ MOVE_PROXIMO_INIMIGO	  
 
 	INC R0
 	CALL ATUALIZA_PRIMEIRA_LINHA_LIMPAR
@@ -573,7 +677,7 @@ ONE_MORE_ENEMY_1:
 	MOV R2, A
 	MOV A, #0FFH ;;JÁ ESTA MORTO
 	XRL A, R2
-	JZ MOVE_PROXIMO_INIMIGO
+	JZ MOVE_PROXIMO_INIMIGO	
 
 	CALL ATUALIZA_PRIMEIRA_LINHA_LIMPAR
 
@@ -1560,28 +1664,6 @@ ONE_MORE_TIME:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;;;;;;;;;;;;;;;;;;;;;; DADOS NA MEMÓRIA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-INIMIGOS:;X,Y[lcd page]
-	DB 	96D, 0D			   ;INIMIGO 0
-	DB	75D, 0D			   ;INIMIGO 1
-	DB	54D, 0D			   ;INIMIGO 2 
-	DB	31D, 0D //PRIMEIRA LINHA  ;INIMIGO 3;.... ETC
-	DB 	96D, 1D
-	DB	75D, 1D
-	DB	54D, 1D
-	DB	31D, 1D //SEGUNDA LINHA
-
-
-NAVE:  ;X, Y[lcd page], VIDAS
-	DB 59D, 7D, 3D
-
-TIROS:	;X,Y, DIREÇÃO
-	DB 0FFH, 0FFH, 0FFH	  ;;COMO COLOCAR VÁRIOS TIROS NESSA MATRIX DEPOIS? OU JÁ DEIXAR A MATRIX COM UM TAMANHO GRANDE?
 
 
 END
