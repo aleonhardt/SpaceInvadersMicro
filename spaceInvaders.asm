@@ -101,7 +101,7 @@ INICIO:
 	MOV PLAYERX, #STARTINGX
 	MOV PLAYERY, #STARTINGY
 	
-	CALL INICIALIZA_INIMIGOS
+	CALL INICIALIZA_DADOS_JOGO
 	CALL IMPRIME_TELA_INICIAL
 	
 	SHOT_NULL EQU 0FFH
@@ -232,6 +232,28 @@ VOLTA_TIM0:
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;; FUNÇÃO QUE INICIALIZA OS DADOS NECESSÁRIOS PARA O JOGO;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+INICIALIZA_DADOS_JOGO:
+	CLR LED1
+	CLR LED2
+	CLR LED3 ;;DEFINE AS 3 VIDAS DO BIXINHO
+	CLR GAME_OVER
+	MOV PLAYERX, #STARTINGX
+	MOV PLAYERY, #STARTINGY
+	 
+	CALL INICIALIZA_INIMIGOS
+	
+;	SHOT_NULL EQU 0FFH
+	MOV PLAYER_SHOTX, #SHOT_NULL
+	MOV PLAYER_SHOTY, #SHOT_NULL
+
+	MOV ENEMY_SHOTS, #MARCA_PARADA_TIROS 
+
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO DE INICIALIZAÇÃO ;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE TRADUZ O Y, DADO EM A, NO FORMATO 0001 0LIN[BAIXO] OU 0000 0LIN [CIMA]
 ;;;;;;;;;;;;;;;;;;;;;;E COLOCA EM A A LINHA E SETA/CLR O BIT TIRO_METADE_BAIXO ;;;;;;;;;;;;;;;;;;;;;;;
@@ -269,6 +291,94 @@ ADICIONA_BIT_EMBAIXO:
 ;;;;;;;;; FIM DA FUNÇÃO QUE CONVERTE O Y DOS TIROS ;;;;;;;;;;;;;;;;;;
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE MOVE OS TIROS E DEPOIS ATUALIZA O LCD ;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MOVE_TIROS:
+	CALL MOVE_TIROS_INIMIGOS
+	CALL MOVE_TIROS_NAVE
+	CALL MOVE_TIROS_LCD
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNCAO QUE MOVE OS TIROS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;; FUNCAO QUE MOVE O TIRO DA NAVE, SE HOUVER ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MOVE_TIROS_NAVE:
+	MOV A, PLAYER_SHOTX
+	XRL A, #SHOT_NULL
+	JZ SEM_TIRO_NAVE
+;;CASO TENHA UM TIRO DA NAVE
+	MOV A, PLAYER_SHOTY ;;SÓ MUDA O Y NÉ
+	CALL TRADUZ_Y_TIRO	 ;;LINHA EM A E ESTADO EM TIRO_METADE_BAIXO
+	JB TIRO_METADE_BAIXO, MANTEM_LINHA_TIRO
+	;;;;;;;;;; SE O TIRO ESTA NA METADE DE CIMA, TEM QUE MUDAR A LINHA E O ESTADO
+	DEC A ;;A ESTA COM A LINHA
+	SETB TIRO_METADE_BAIXO ;;COLOCA O TIRO NA METADE DE BAIXO DA PROXIMA LINHA
+	MOV C, TIRO_METADE_BAIXO
+   	CALL CONVERTE_Y_TIRO ;;A ESTÁ COM A LINHA
+	;; A FICA COM O Y NO FORMATO CERTO
+	MOV PLAYER_SHOTY, A
+	RET
+
+MANTEM_LINHA_TIRO:	;; SO MUDA O TIRO DA METADE DE BAIXO PARA A METADE DE CIMA
+	CLR TIRO_METADE_BAIXO
+	MOV C, TIRO_METADE_BAIXO
+	CALL CONVERTE_Y_TIRO ;;A FICA COM O Y NO FORMATO CERTO
+	MOV PLAYER_SHOTY, A
+	RET
+
+SEM_TIRO_NAVE:
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE O TIRO DA NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FUNCAO QUE MOVE OS TIROS DOS INIMIGOS, NA MEMÓRIA ;;;;;;;;;;;;
+MOVE_TIROS_INIMIGOS:
+	PUSH AR0
+	MOV R0, #ENEMY_SHOTS
+	CJNE @R0, #MARCA_PARADA_TIROS, MOVE_PROXIMO_TIRO
+;NENHUM_TIRO:	;CASO NAO TENHA NENHUM TIRO AINDA	
+	POP AR0	   
+	RET
+
+MOVE_PROXIMO_TIRO:
+	 ; X DO TIRO.. CONTINUA O MESMO
+	INC R0
+	MOV A, @R0 ;;Y DO TIRO QUE DEVE MOVER
+	CALL TRADUZ_Y_TIRO ;; COLOCA A LINHA EM A E O ESTADO EM TIRO_METADE_BAIXO
+	JB TIRO_METADE_BAIXO, TROCA_LINHA_TIRO
+;; SE O TIRO DO INIMIGO AINDA ESTA NA METADE DE CIMA, NÃO PRECISA TROCAR A LINHA, SÓ MUDAR PARA A METADE DE BAIXO.
+	SETB TIRO_METADE_BAIXO
+	MOV C, TIRO_METADE_BAIXO
+	CALL CONVERTE_Y_TIRO ;;A JÁ ESTÁ COM A LINHA
+	;; A FICA COM O Y NO FORMATO CERTO
+	MOV @R0, A
+
+ APONTA_PROXIMO_TIRO:
+	INC R0 ;;APONTA PARA O X DO PROXIMO TIRO
+	CJNE @R0, #MARCA_PARADA_TIROS, MOVE_PROXIMO_TIRO
+	
+	POP AR0
+	RET
+
+TROCA_LINHA_TIRO:		;;TEM QUE COLOCAR NA METADE DE CIMA DA PROXIMA LINHA
+	INC A		;PROXIMA LINHA
+	CLR TIRO_METADE_BAIXO	;COLOCA NA METADE DE CIMA
+	MOV C, TIRO_METADE_BAIXO
+	CALL CONVERTE_Y_TIRO
+		;; A FICA COM O Y NO FORMATO CERTO
+	MOV	@R0, A
+	JMP APONTA_PROXIMO_TIRO
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE OS TIROS DOS INIMIGOS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;	  função que decide se o inimigo vai atirar, e chama a função de atirar ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;SO É CHAMADA DEPOIS DE MOVER OS INIMIGOS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -295,7 +405,7 @@ ATIRA:								  ;;CASO HAJA UM INIMIGO COM O MESMO X DA NAVE
 DISPARA_TIRO_DA_FRENTE:
 	  	MOV A, @R1	;R1 ESTÁ APONTANDO PARA O x DO INIMIGO DA FRENTE
 		ADD A, #5D	;;PARTE DO MEIO DO INIMIGO
-		CLR C		;; DA PARTE DE CIMA DA LINHA
+		SETB C		;; DA PARTE DE CIMA DA LINHA
 		INC R1		;;APONTA PARA O Y DO INIMIGO
 		MOV B, @R1 	; B FICA COM O Y CERTO
 		CALL ADICIONA_TIRO_INIMIGO
@@ -307,7 +417,7 @@ DISPARA_TIRO_DA_FRENTE:
 DISPARA_TIRO_DE_TRAS:
 		MOV A, @R0		;;R0 AINDA ESTÁ APONTANDO PARA O X DO INIMIGO DE TRAS
 		ADD A, #5D	;;PARTE DO MEIO DO INIMIGO
-		CLR C		;; DA PARTE DE CIMA DA LINHA
+		SETB C		;; DA PARTE DE CIMA DA LINHA
 		INC R0		;;APONTA PARA O Y DO INIMIGO
 		MOV B, @R0 	; B FICA COM O Y CERTO
 		CALL ADICIONA_TIRO_INIMIGO	
@@ -402,8 +512,8 @@ ADICIONA_TIRO_POSICAO BIT 09H
 ADICIONA_TIRO_INIMIGO:
 	 PUSH AR0
 	 PUSH AR1
-	 MOV R1, A
-	 MOV ADICIONA_TIRO_POSICAO, C
+	 MOV R1, A				   ;R1 SALVA X
+	 MOV ADICIONA_TIRO_POSICAO, C  ;SALVA O BIT DO ESTADO LÁ
 	 MOV R0, #ENEMY_SHOTS
 	 CALL PERCORRE_LISTA_TIROS_ATE_PARADA
 	 ;; R0 AGORA ESTÁ NA MARCA DE PARADA
@@ -436,20 +546,10 @@ PERCORRE_PROXIMO_TIRO:
 ACHEI_A_MARCA_PARADA:
 	RET 		;R0 VAI CONTINUAR APONTANDO PARA A MARCA DE PARADA
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;; FUNÇÃO QUE INICIALIZA OS DADOS NECESSÁRIOS PARA O JOGO;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-INICIALIZA_DADOS_JOGO:
-	CLR LED1
-	CLR LED2
-	CLR LED3 ;;DEFINE AS 3 VIDAS DO BIXINHO
-	CLR GAME_OVER
-	MOV PLAYERX, #STARTINGX
-	MOV PLAYERY, #STARTINGY
-	CALL INICIALIZA_INIMIGOS
-	RET
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO DE INICIALIZAÇÃO ;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;; FIM DA FUNÇÃO QUE PERCORRE A LISTA ATÉ O FINAL
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;; FUNÇÃO QUE MATA A NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -607,7 +707,7 @@ ONE_MORE_ENEMY:
 
 	INC R0
 	CALL ATUALIZA_PRIMEIRA_LINHA_LIMPAR
-	DEC R0	 ;VOLTA PARA A POSIÇÃO ANTERIOR
+	DEC R0	 ;VOLTA PhARA A POSIÇÃO ANTERIOR
 	
 
 
@@ -831,6 +931,10 @@ MOVE_TIROS_INIMIGOS_LCD:
 	PUSH AR0
 
 	MOV R0, #ENEMY_SHOTS
+	CJNE @R0, #MARCA_PARADA_TIROS, PROXIMO_TIRO_INIMIGO
+;NENHUM TIRO AINDA
+	POP AR0
+	RET
 
 PROXIMO_TIRO_INIMIGO:	
 	MOV A, @R0			;;PEGA O X
@@ -871,19 +975,20 @@ VERIFICA_HA_PROX_TIRO:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;; FUNÇÃO QUE MOVE OS TIROS DA NAVE, BASEADO NOS DADOS DA MEMÓRIA;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;MUDAR ;; MUDAR ;;MUDAR
 MOVE_TIROS_NAVE_LCD:
 	PUSH AR0
 
-	MOV R0, #PLAYER_SHOTS
+	MOV A, PLAYER_SHOTX 	
+	XRL A, #SHOT_NULL
+	JZ SEM_TIRO_PLAYER
 
-PROXIMO_TIRO_NAVE:	
-	MOV A, @R0			;;PEGA O X
+	MOV A, PLAYER_SHOTX		;PEGA O X
 	CALL TRADUZ_X
 	ADD A, #040H
 	CALL ESCREVE_COMANDO_LCD   ;;COLOCA NA POSIÇÃO X CERTA
-	INC R0 
-	INC R0	;;PEGA O Y
-	MOV A, @R0
+	
+	MOV A,PLAYER_SHOTY;;PEGA O Y
 	CALL TRADUZ_Y_TIRO ;;A FICA COM O Y CERTO, BIT TIRO_METADE_BAIXO FICA CORRETO
 	JB TIRO_METADE_BAIXO, ESCREVE_TIRO_METADE_BAIXO
 ESCREVE_TIRO_NAVE_METADE_CIMA:
@@ -892,7 +997,9 @@ ESCREVE_TIRO_NAVE_METADE_CIMA:
 	CALL ESCREVE_COMANDO_LCD  ;;COLOCA NO Y CERTO
 	MOV A, #06H ;;00000110
 	CALL ESCREVE_DADO_LCD
-	JMP VERIFICA_HA_PROX_TIRO
+	
+	POP AR0				;; O PLAYER SÓ TEM UM TIRO POR VEZ NA TELA, SÓ ESCREVE AQUELE
+	RET
 
 ESCREVE_TIRO_NAVE_METADE_BAIXO:
 	CALL LIMPA_LINHA_SEGUINTE ;; A JÁ ESTÁ COM Y CERTO  
@@ -902,13 +1009,12 @@ ESCREVE_TIRO_NAVE_METADE_BAIXO:
 	MOV A, #060H ;;01100000
 	CALL ESCREVE_DADO_LCD
 
-VERIFICA_HA_PROX_TIRO_NAVE:
-	 INC R0
-	 INC R0 ;;APONTA PROX X PLAYER_SHOTS
-	 CJNE @R0, #MARCA_PARADA_TIROS , PROXIMO_TIRO_NAVE ;;MARCA DE PARADA INDICA QUE NÃO TEM MAIS TIROS
-
-	 POP AR0
+	 POP AR0		 ;; O PLAYER SÓ TEM UM TIRO POR VEZ NA TELA, SÓ ESCREVE AQUELE
 	 RET
+
+SEM_TIRO_PLAYER:
+	POP AR0
+	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE OS TIROS DA NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
