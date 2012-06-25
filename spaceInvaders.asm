@@ -142,9 +142,7 @@ RIGHT_LIMIT 	EQU 117D
 	MOV A, PLAYER_SHOTX
 	XRL A, #SHOT_NULL
 	JNZ CHECK_FIRE
-	
 	CALL NAVE_ATIRA
-	
 	JMP CHECK_FIRE
 	
 	PLAYER_MOV_RIGHT:
@@ -232,6 +230,7 @@ INICIALIZA_DADOS_JOGO:
 ;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE FAZ A NAVE ATIRAR ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 NAVE_ATIRA:
+	CLR ET0
 	MOV A, PLAYERX
 	ADD A, #5D
 	MOV PLAYER_SHOTX, A	 ;;SAI DO MEIO DA NAVE
@@ -241,6 +240,7 @@ NAVE_ATIRA:
 	CLR C
 	CALL CONVERTE_Y_TIRO
 	MOV PLAYER_SHOTY, A
+	SETB ET0
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE FAZ A NAVE ATIRAR ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -483,8 +483,8 @@ CONVERTE_Y_TIRO:
 	JC ADICIONA_BIT_EMBAIXO
 	RET		;; SE O BIT NÃO ESTÁ LIGADO, ENTÃO NÃO MUDA NADA E RETORNA O A IGUAL
 ADICIONA_BIT_EMBAIXO:
-	 ADD A, #016D ;;SETA O BIT CERTO, DEIXA O RESTO INTACTO
-	 RET
+	ADD A, #016D ;;SETA O BIT CERTO, DEIXA O RESTO INTACTO
+	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; FIM DA FUNÇÃO QUE CONVERTE O Y DOS TIROS ;;;;;;;;;;;;;;;;;;
 
