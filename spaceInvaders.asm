@@ -182,7 +182,9 @@ TRATA_TIM0:
 	;AQUI MOVE OS TIROS	
 
 	CALL TIRO_INIMIGO_ACERTOU
-	CALL TIRO_NAVE_ACERTOU_CEU 
+	CALL TIRO_NAVE_ACERTOU_CEU
+	CALL TIRO_NAVE_ACERTOU_INIMIGO
+	CALL PRECISA_REINICIO 
 	CALL MOVE_TIROS	
 
 	MOV R5, EIGHT_TIMERS
@@ -227,6 +229,201 @@ INICIALIZA_DADOS_JOGO:
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO DE INICIALIZAÇÃO ;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+ENEMIES_ALIVE DATA 64H
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;FUNCAO DE REINICIO DOS INIMIGOS SE TODOS MORREM ;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;; CHAMADA QUANDO UM INIMIGO É MORTO ;;;;;;;;;;;;;;;;;;
+PRECISA_REINICIO:
+	
+	CALL VERIFICA_QUANTIDADE_INIMIGOS_VIVOS ; ISSO COLOCA EM ENEMIES_ALIVE O VALOR DE INIMIGOS VIVOS
+	MOV  A,  ENEMIES_ALIVE
+	JNZ AINDA_VIVEM
+
+	CALL INICIALIZA_INIMIGOS
+	
+	AINDA_VIVEM:
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; FIM DA FUNÇÃO DE REINICIO ;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; DIZ QUANTOS INIMIGOS ESTAO VIVOS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+VERIFICA_QUANTIDADE_INIMIGOS_VIVOS:	 ; EH SO CHAMAR ELA QUE DIZ QUANTOS INIMIGOS TEM VIVOS
+																 ; FEITA PARA USAR COM UM COMEÇA DENOVO
+	PUSH AR0 
+	PUSH AR2
+
+
+	MOV R2, #NUMERO_INIMIGOS
+	MOV ENEMIES_ALIVE, #00H
+    MOV R0, #ENEMIES
+	 
+	PROXIMA_CHECAGEM_DE_VIVOS:
+	MOV A, @R0
+	XRL A, #0FFH
+	JZ CHECA_PROXIMO_INIMIGO	  ;;JA ESTA MORTO
+
+	MOV A, ENEMIES_ALIVE
+	INC A
+	MOV ENEMIES_ALIVE, A ;;ADICIONA UM NOS VIVOS
+
+CHECA_PROXIMO_INIMIGO:
+	INC R0				 
+	INC R0				 ;APONTA PARA O PROXIMO INIMIGO
+
+	DJNZ  R2, PROXIMA_CHECAGEM_DE_VIVOS 
+
+
+ACABOU_VERIFICA_QUANTIDADE_INIMIGOS_VIVOS:
+
+	POP AR2 
+	POP AR0
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE DIZ QUANTOS INIMIGOS AINDA ESTAO VIVOS;;;;;;;;;;;;;
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; função chamada sempre que OS TIROS SE MOVEM;;;;;;;;;;;;;
+;;;;;;;;;;;;; VERIFICA SE UM INIMIGO MORREU E MATA ELE E LIMPA O TIRO ;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+INIMIGO_NA_MIRA BIT 0EH
+
+TIRO_NAVE_ACERTOU_INIMIGO:
+	PUSH AR0 
+	PUSH AR2
+
+	MOV R0, #ENEMIES
+	MOV R2, #NUMERO_INIMIGOS
+
+	PROCURA_PROXIMO_VIVO:
+	
+	MOV A, @R0
+	XRL A, #0FFH
+	JZ CHECA_PROXIMO_INIMIGO_FOI_ACERTADO	  ;;JA ESTA MORTO
+
+	ESTA_VIVO:
+	;HORA DE VERIFICAR SE NÃO TOMOU UM TIRO
+	
+	MOV A, @R0
+	 CALL VERIFICA_TIRO_MIRANDO_INIMIGO ;FUNÇÃO QUE PERCORRE TODO O TAMANHO DO INIMIGO DE X ATÉ X+11 E DIZ NO FLAG INIMIGO_NA_MIRA
+	 									; SE FOI BALEADO  
+	JB INIMIGO_NA_MIRA, VER_MATA_INIMIGO_ACERTADO	;;VERIFICA SE MATA O INIMIGO QUE ESTA NA MIRA DO TIRO
+
+CHECA_PROXIMO_INIMIGO_FOI_ACERTADO:
+	INC R0				 
+	INC R0				 ;APONTA PARA O PROXIMO INIMIGO
+
+	DJNZ R2, PROCURA_PROXIMO_VIVO
+
+ACABOU_VERIFICA_MORTE_INIMIGO:
+	POP AR2
+	POP AR0
+
+	RET
+;;;;;;;;  AQUI A FUNÇÃO RETORNA; ABAIXO ESTA A VERIFICAÇÃO SE O INIMIGO REALMENTE MORRE OU NÃO
+
+VER_MATA_INIMIGO_ACERTADO:		  ;;VERIFICA SE MATA O INIMIGO QUE ESTA NA MIRA DO TIRO
+
+	INC R0	; AGORA APONTA PARA O Y DO INIMIGO
+
+	 MOV A, PLAYER_SHOTY
+	 CALL TRADUZ_Y_TIRO		
+	MOV B, A		;; B FICA COM O Y DO TIRO, TIRO_EMBAIXO_LINHA FICA COM O ESTADO
+	MOV A, @R0	  ;;A TEM O Y DO INIMIGO
+					;; SE O Y DO TIRO FOR UM A MAIS QUE O Y DO INIMIGO E O TIRO ESTIVER ENCIMA, 
+					;; DAÍ O INIMIGO MORRE
+
+	XRL A, B 	;;SE O TIRO JÁ ESTA NO INIMIGO
+	JZ MATA_INIMIGO_FUZILADO		;;MATA O INIMIGO DIRETO	
+
+	JB TIRO_METADE_BAIXO, ACABOU_VERIFICA_MORTE_INIMIGO	;; COMO SÓ TEM UM TIRO, JÁ SAI DIRETO
+		;;TIRO ESTÁ NA PARTE DE CIMA DA LINHA
+											  
+	
+	MOV A, @R0		;;COLOCA DENOVO O Y DO INIMIGO
+	DEC B
+	XRL A, B 	;;SE SÃO IGUAIS
+	JNZ ACABOU_VERIFICA_MORTE_INIMIGO		;;AINDA TEM ESPAÇO PARA O TIRO DA NAVE ANDAR
+	
+    DEC R0        ;APONTA PARA O X DA NAVE QUE FOI PEGA
+
+MATA_INIMIGO_FUZILADO:  
+   CALL MATA_INIMIGO_ANULA_TIRO ; FUNÇÃO QUE MATA QUEM TA NO R0 E DIZ QUE TIRO DA NAVE N EXISTE MAIS
+	JMP ACABOU_VERIFICA_MORTE_INIMIGO ;;; SÓ VAI PRO FIM  O MESMO QUE JA   
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE VERIFICA SE UM INIMIGO FOI ACERTADO ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ; FUNÇÃO QUE MATA QUEM TA NO R0 E DIZ QUE TIRO DA NAVE NAO EXISTE MAIS
+MATA_INIMIGO_ANULA_TIRO: 
+	   	PUSH AR0
+		CALL MATA_UM_INIMIGO_LCD	
+		MOV @R0, #0FFH
+		INC  R0
+		MOV @R0, #0FFH
+		
+
+		CALL LIMPA_TIRO_NAVE_LCD
+		MOV	PLAYER_SHOTX,	  #SHOT_NULL
+		MOV	PLAYER_SHOTY,	  #SHOT_NULL
+
+		POP AR0
+		RET
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MATA O INIMIGO E LIMPA O TIRO;;;;;;;;
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; função que verifica se o inimigo apontado em R0 está na mira do tiro da nave
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+VERIFICA_TIRO_MIRANDO_INIMIGO: ; RECEBE DO R0 A POSIÇÃO X DE UM INIMIGO
+ 							  ;FUNÇÃO QUE PERCORRE TODO O TAMANHO DO INIMIGO X ATÉ X+11 E DIZ NO FLAG ACERTOU_TIRO_X
+	 						  ; SE FOI BALEADO
+	PUSH AR0 
+	PUSH AR1
+	PUSH AR2
+
+
+ CLR INIMIGO_NA_MIRA
+
+  MOV A,@R0	 ; COM ESSA MANOBRA CONSEGUIMOS COLOCAR NO R1 O VALOR ATUAL DE X
+  MOV R1, A
+
+  MOV R2, #11D	;;TAMANHO DA NAVE
+  TESTA_PROXIMA_LARGURA_X:
+  MOV A,R1
+  XRL A, PLAYER_SHOTX 
+  JZ INIMIGO_ESTA_NA_MIRA	   ;;SE O X DO INIMIGO É O MESMO X DO TIRO
+  INC R1
+  DJNZ R2, TESTA_PROXIMA_LARGURA_X	;;TESTA COM O PRÓXIMO X DA NAVE
+
+ ACABOU_VERIFICA_TIRO_X:
+   	POP AR2 
+	POP AR1
+	POP AR0
+	RET
+
+INIMIGO_ESTA_NA_MIRA:
+	SETB INIMIGO_NA_MIRA
+	JMP ACABOU_VERIFICA_TIRO_X
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;; fim da função que verifica se o inimigo esta na mira do tiro
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE FAZ A NAVE ATIRAR ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1320,14 +1517,11 @@ MATA_NAVE_LCD:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;; MATA UM INIMIGO. QUAL INIMIGO É INDICADO POR A, AS POSIÇÕES DE MEMÓRIA DEVEM SER VÁLIDAS;;;;
+;;;;;;;;;;;;;;;;;;; MATA UM INIMIGO. R0 JÁ ESTÁ APONTANDO PARA O INIMIGO CERTO;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;; SO DEPOIS ZERAR AS POSIÇÕES DE MEMÓRIA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 MATA_UM_INIMIGO_LCD:
 	PUSH AR0
-	MOV R0, #ENEMIES
-	ADD A, R0
-	ADD A, R0 
-	MOV R0, A ;;APONTA PARA O X CERTO
+	;;R0 ESTA JÁ NA POSIÇÃO DO INIMIGO CERTO
 	MOV A, @R0 ;;A FICA COM O X DO INIMIGO
 	CALL TRADUZ_X ;;A FICA COM O X CORRETO E O BIT SELECT FICA CERTO
 	INC R0
@@ -1997,7 +2191,9 @@ INICIO_LCD:
   		mov 	a,  #3fh          ; Display on
   		call 	ESCREVE_COMANDO_LCD               
   		CALL DELAY
-		
+		MOV A, #0C0H
+		CALL ESCREVE_COMANDO_LCD
+
   		CALL CLEAR_DISPLAY
              
   		mov 	a, #40h            ; Y address counter at First column
