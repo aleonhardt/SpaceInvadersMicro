@@ -59,7 +59,9 @@ REINICIO:
 	AINDA_VIVEM:
 	RET
 
-
+ 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
  VERIFICA_TIRO_X: ; RECEBE DO R0 A POSIÇÃO X DE UM INIMIGO
  							  ;FUNÇÃO QUE PERCORRE TODO O TAMANHO DO INIMIGO X ATÉ X+11 E DIZ NO FLAG ACERTOU_TIRO_X
@@ -94,7 +96,9 @@ REINICIO:
 
   RET
    
-
+ 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 VERIFICA_QUANTIDADE_INIMIGOS_VIVOS:	 ; EH SO CHAMAR ELA QUE DIZ QUANTOS INIMIGOS TEM VIVOS
 																 ; FEITA PARA USAR COM UM COMEÇA DENOVO
@@ -134,10 +138,74 @@ VERIFICA_QUANTIDADE_INIMIGOS_VIVOS:	 ; EH SO CHAMAR ELA QUE DIZ QUANTOS INIMIGOS
 	RET
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+VERIFICA_MORTE_INIMIGO:
+	PUSH AR0 
+	PUSH AR2
+
+	MOV R0, #ENEMIES
+	MOV R2, #00H ;VAI INDICAR QUANTOS JA PROCUROU
+
+	PROCURA_PROXIMO_VIVO:
+	CJNE @R0, #0FFH, ESTA_VIVO							;R0 DETEM X INIMIGO ATUAL
+																			;FF É A MARCA DA MORTE
+	INC R0 ; PARA APONTAR PARA O PROXIMO X ENIMIGO VIVO
+	INC R0
+	INC R2 
+	CJNE R2, #08H, PROCURA_PROXIMO_VIVO		; 8 É O NUMERO DE INIMIGOS
+	JMP ACABOU_VERIFICA_MORTE_INIMIGO
+
+	ESTA_VIVO:
+	;HORA DE VERIFICAR SE NÃO TOMOU UM TIRO
+	
+	 CALL VERIFICA_TIRO_X ;FUNÇÃO QUE PERCORRE TODO O TAMANHO DO INIMIGO DE X ATÉ X+11 E DIZ NO FLAG ACERTOU_TIRO_X
+	 									; SE FOI BALEADO  
+	
+	MOV A, ACERTOU_TIRO_X
+	JZ INCREMENTA_R0_EM_dois_PROCURA_PROXIMO_VIVO ; SE NÃO PEGOU NA LARGURA ENTÃO JA NÃO ACERTOU.
+																					     ; VAI PARA O PROXIMO INIMIGO
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1)estou matando quando y igual a y, disso mais duas questões:
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1.1)	pode ser quando y + 1 tiro esta na frente de y? ou seja na frente não dentro
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1.2) o y possui algum comprimento? a calda do y seria fatal se existe??
+	
+														
+	INC R0	; AGORA APONTAM PARA Y
+
+	MOV A, @R0
+	CALL TRADUZ_Y_TIRO
+
+	CJNE A, PLAYER_SHOTY, INCREMENTA_R0_EM_um_PROCURA_PROXIMO_VIVO
+																				; O INCREMENTO EM 1 É PORQUE JA ESTAMOS NO Y
+   ;;;;;;;;;;;;;;; ACERTOU O TIRO Y E X IGUAIS
+   DEC R0        ;APONTA PARA O X DA NAVE QUE FOI PEGA
+   
+   CALL MATA_INIMIGO_ANULA_TIRO ; FUNÇÃO QUE MATA QUEM TA NO R0 E DIZ QUE TIRO DA NAVE N EXISTE MAIS
+	JMP ACABOU_VERIFICA_MORTE_INIMIGO ;;; SÓ VAI PRO FIM  O MESMO QUE JA   
 
 
 
 
+ INCREMENTA_R0_EM_dois_PROCURA_PROXIMO_VIVO:
+ 	INC R0
+ INCREMENTA_R0_EM_um_PROCURA_PROXIMO_VIVO:
+ 	INC R0
+	INC R2 ; MAIS UM FOI TESTADO
+
+	CJNE R2, #08H, PROCURA_PROXIMO_VIVO		; 8 É O NUMERO DE INIMIGOS SE N PULAR CHEGOU AO FIM
+   ACABOU_VERIFICA_MORTE_INIMIGO:
+
+
+	POP AR2
+	POP AR0
+
+	RET
+
+
+TRADUZ_Y_TIRO:
+	RET
 
 
 ENEMIES DATA 33H
@@ -153,8 +221,20 @@ MUDOU_DIRECAO BIT 06H
 ACERTOU_TIRO_X DATA 46H
 PLAYERLIFE DATA 32H
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+MATA_INIMIGO_ANULA_TIRO: ; FUNÇÃO QUE MATA QUEM TA NO R0 E DIZ QUE TIRO DA NAVE N EXISTE MAIS
+		PUSH AR0
+
+		MOV @R0, 0FFH
+		INC  R0
+		MOV @R0, 0FFH
+
+		MOV	PLAYER_SHOTX,	  SHOT_NULL
+		MOV	PLAYER_SHOTY,	  SHOT_NULL
+		RET
 
 
 
@@ -169,70 +249,4 @@ PLAYERLIFE DATA 32H
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	 
 END
- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;ESSA PARTE AINDA N ESTA PRONTA
-VERIFICA_MORTE_NAVE:
-	PUSH AR0 
-	PUSH AR1
-	PUSH AR2
-	PUSH AR3
-
-	MOV R0, #ENEMIES
-	MOV R2, #00H ;VAI INDICAR QUANTOS JA PROCUROU
-
-	PROCURA_PROXIMO_VIVO:
-	CJNE @R0, #0FFH, ESTA_VIVO							;R0 DETEM X INIMIGO ATUAL
-																			;FF É A MARCA DA MORTE
-	INC R0 ; PARA APONTAR PARA O PROXIMO X ENIMIGO VIVO
-	INC R0
-	INC R2 
-	CJNE R2, #08H, PROCURA_PROXIMO_VIVO		; 8 É O NUMERO DE INIMIGOS
-	JMP JA_TESTOU_TODOS_OS_INIMIGOS
-
-	ESTA_VIVO:
-	;HORA DE VERIFICAR SE NÃO TOMOU UM TIRO
-	
-	 CALL VERIFICA_TIRO_X ;FUNÇÃO QUE PERCORRE TODO O TAMANHO DO INIMIGO X ATÉ X+11 E DIZ NO FLAG ACERTOU_TIRO_X
-	 									; SE FOI BALEADO  
-
-
-	MOV A, PLAYER_SHOTX
-	XRL A, @R0
-
-	CJNE @R0, PLAYER_SHOTX, APONTA_R0_MAIS_DOIS ;SE NÃO É O MESMO X ENTÃO JA SAI
-																			  ;	ESSE JMP EH PARA APONTAR PARA O PROXIMO
-																			  ;X, ESTANDO NO X ANTERIOR
-
-	INC R0	; AGORA APONTAM PARA Y
-	CJNE @R0, PLAYER_SHOTY, APONTA_R0_MAIS_UM; O MESMO JUMP DO DE CIMA
-																				; PODE-SE IMAGINAR QUE EU VOU DIRETO PARA O 
-																				; LABEL 	PROCURA_PROXIMO_VIVO:
-   DEC R0
-   MOV @R0,#0FFH
-   MOV PLAYER_SHOTX, SHOT_NULL
-   MOV PLAYER_SHOTY, SHOT_NULL
-   ; JA QUE EU ESTAVA COM R0 APONTANDO PARA Y INCREMENTO R0
-   ;TAMBEM SOMO R2 PARA INDICAR QUE MAIS UM DOS INIMIGOS JA FOI CHECADO
-   INC R0
-   INC R2
-   CJNE R2, #08H, PROCURA_PROXIMO_VIVO		; 8 É O NUMERO DE INIMIGOS
-   JMP JA_TESTOU_TODOS_OS_INIMIGOS
-
-
-
-
- APONTA_R0_MAIS_DOIS:
- 	INC R0
- APONTA_R0_MAIS_UM:
- 	INC R0
-	JMP PROCURA_PROXIMO_VIVO
-
-
-   JA_TESTOU_TODOS_OS_INIMIGOS:
-
-
-
-	POP AR2
-	POP AR1
-	POP AR0
-
-	RET
+ 
