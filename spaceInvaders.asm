@@ -15,7 +15,7 @@ SELECT 		BIT		00H ;SELECIONA O LADO ESQUERDO OU DIREITO DO LCD (0/1)
 TODOS 		BIT		03H	;QUANDO ESTÁ EM UM INDICA QUE DEVE ESCREVER NOS DOIS LADOS
 
 LCD_DATA	EQU 	P3
-LCD_DI		EQU		P2.7					 ;;;;;;; COLOCAR ESSES DEFINES NOS LUGARES QUE ACESSA
+LCD_DI		EQU		P2.7					 
 LCD_RW		EQU		P2.6
 LCD_E		EQU		P2.5
 LCD_C1		EQU		P2.4
@@ -48,6 +48,7 @@ PLAYER_SHOTY DATA 44H
 ENEMY_SHOTS DATA 45H   ;;FILA SEQUENCIAL NORMAL DOS TIROS
 					;;;;;;;;;;;;; O Y DOS TIROS DEVE TER  O FORMATO 0001 0LIN[BAIXO] OU 0000 0LIN [CIMA]
 					;; OU SEJA, CADA TIRO INDICA SE ESTÁ NA PARTE DE CIMA OU DE BAIXO DA LINHA, E QUAL LINHA
+TIRO_METADE_BAIXO BIT 0FH
 MAIOR_X	DATA 60H	
 MENOR_X	DATA 61H
 PRIMEIRA_LINHA_LIMPAR DATA 62H
@@ -91,15 +92,7 @@ INICIO:
 	SETB TR0
 	;;TIMER SETADO
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;FUNÇÕES DO LCD A SEREM USADAS
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;IMPRIME_TELA_INICIAL - INIMIGOS E NAVE DEVEM ESTAR INICIALIZADOS
-;MOVE_NAVE - POSICAO ANTIGA DA NAVE EM A
-;MATA_NAVE  - VAI ESCREVER A NAVE DENOVO EM STARTINGX E ATUALIZAR A MEMÓRIA
-;MATA_UM_INIMIGO - NÚMERO DO INIMIGO [INDEX NO VETOR] INDICADO POR A, SÓ DEPOIS COLOCAR FFH NA MEMÓRIA
-;MOVE_TODOS_OS_INIMIGOS_VIVOS - A FUNÇÃO DE MOVER OS INIMIGOS NA MEMÓRIA DEVE SER CHAMADA ANTES [ÓBVIO]
-;ESCREVE_GAME_OVER - SÓ CHAMAR, LIMPAR TODA A TELA E ESCREVER OU SÓ ESCREVER???
+
 		  
 ;POOOOOOOOOOOOOOLING:
 ;LEFT_B  	    EQU 11111101B  ;PX.1 LEFT
@@ -150,16 +143,7 @@ RIGHT_LIMIT 	EQU 117D
 	XRL A, #SHOT_NULL
 	JNZ CHECK_FIRE
 	
-	MOV A, PLAYERX
-	ADD A, #5D
-	MOV PLAYER_SHOTX, A
-	
-	MOV A, PLAYERY
-	CLR C
-	SUBB A, #1D
-	SETB C
-	CALL CONVERTE_Y_TIRO
-	MOV PLAYER_SHOTY, A
+	CALL NAVE_ATIRA
 	
 	JMP CHECK_FIRE
 	
@@ -197,7 +181,9 @@ TRATA_TIM0:
 	MOV TL0, #11011011B
 	;AQUI MOVE OS TIROS	
 
-	;CALL MOVE_TIROS_NAVE	
+	CALL TIRO_INIMIGO_ACERTOU
+	CALL TIRO_NAVE_ACERTOU_CEU 
+	CALL MOVE_TIROS	
 
 	MOV R5, EIGHT_TIMERS
 	DJNZ R5, END_TF0
@@ -205,8 +191,7 @@ TRATA_TIM0:
 
 	CALL MOVE_INIMIGOS
 	CALL INIMIGO_ATIRAR
-	CALL TIRO_INIMIGO_ACERTOU 
-	CALL MOVE_TIROS
+
 	
 
 	MOV R5, #8D
@@ -242,6 +227,72 @@ INICIALIZA_DADOS_JOGO:
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO DE INICIALIZAÇÃO ;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE FAZ A NAVE ATIRAR ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+NAVE_ATIRA:
+	MOV A, PLAYERX
+	ADD A, #5D
+	MOV PLAYER_SHOTX, A	 ;;SAI DO MEIO DA NAVE
+	MOV A, PLAYERY
+	CLR C
+	SUBB A, #1D			;;SAI DO Y SEGUINTE À NAVE
+	CLR C
+	CALL CONVERTE_Y_TIRO
+	MOV PLAYER_SHOTY, A
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE FAZ A NAVE ATIRAR ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE VERIFICA SE O TIRO DA NAVE CHEGOU NO TODO DA TELA ;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+TIRO_NAVE_ACERTOU_CEU:
+	MOV A, PLAYER_SHOTX
+	XRL A, #SHOT_NULL
+	JZ SEM_NENHUM_TIRO_NAVE
+
+	MOV A, PLAYER_SHOTY
+ 	CALL TRADUZ_Y_TIRO
+	XRL A, #00H
+	JZ TIRO_NO_CEU
+	;;TIRO PODE ANDAR MAIS AINDA
+	RET
+TIRO_NO_CEU:
+	JNB TIRO_METADE_BAIXO, REMOVER_TIRO_CEU
+	;;TIRO PODE ANDAR MAIS AINDA
+	RET
+REMOVER_TIRO_CEU:
+	CALL LIMPA_TIRO_NAVE_LCD
+	MOV PLAYER_SHOTX, #SHOT_NULL
+	MOV PLAYER_SHOTY, #SHOT_NULL
+	RET
+SEM_NENHUM_TIRO_NAVE:
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE ELIMINA O TIRO DA NAVE QUANDO ELE CHEGA NO TOPO
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;; FUNÇÃO QUE LIMPA O TIRO DA NAVE DO LCD ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;
+LIMPA_TIRO_NAVE_LCD:
+	MOV A, PLAYER_SHOTX
+	CALL TRADUZ_X
+	ADD A, #040H
+	CALL ESCREVE_COMANDO_LCD
+	MOV A, PLAYER_SHOTY
+	CALL TRADUZ_Y_TIRO
+	ADD A, #0B8H
+	CALL ESCREVE_COMANDO_LCD
+	MOV A, #00H
+	CALL ESCREVE_DADO_LCD
+	RET
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;;;;;;;;;;; FIM DA FUNÇÃO QUE LIMPA OTIRO DA NAVE DO LCD ;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE FAZ TODA A VERIFICAÇÃO DE COLISÃO DOS TIROS DOS INIMIGOS;;;;;;;;;;;;
@@ -1134,7 +1185,7 @@ MOVE_TIROS_LCD:
 ;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MOVE TODOS OS TIROS NO LCD ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-TIRO_METADE_BAIXO BIT 0FH
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;; FUNÇÃO QUE MOVE OS TIROS DOS INIMIGOS, BASEADO NOS DADOS DA MEMÓRIA;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1210,7 +1261,7 @@ MOVE_TIROS_NAVE_LCD:
 	
 	MOV A,PLAYER_SHOTY;;PEGA O Y
 	CALL TRADUZ_Y_TIRO ;;A FICA COM O Y CERTO, BIT TIRO_METADE_BAIXO FICA CORRETO
-	JB TIRO_METADE_BAIXO, ESCREVE_TIRO_METADE_BAIXO
+	JB TIRO_METADE_BAIXO, ESCREVE_TIRO_NAVE_METADE_BAIXO
 ESCREVE_TIRO_NAVE_METADE_CIMA:
 
 	ADD A, #0B8H
@@ -1226,9 +1277,15 @@ ESCREVE_TIRO_NAVE_METADE_BAIXO:
 	
 	ADD A, #0B8H
 	CALL ESCREVE_COMANDO_LCD ;;COLOCA NO Y CERTO
+	
+	MOV A, PLAYER_SHOTX		;PEGA O X
+	CALL TRADUZ_X
+	ADD A, #040H
+	CALL ESCREVE_COMANDO_LCD   ;;COLOCA NA POSIÇÃO X CERTA
 	MOV A, #060H ;;01100000
 	CALL ESCREVE_DADO_LCD
 
+	
 	 POP AR0		 ;; O PLAYER SÓ TEM UM TIRO POR VEZ NA TELA, SÓ ESCREVE AQUELE
 	 RET
 
@@ -1245,10 +1302,8 @@ SEM_TIRO_PLAYER:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PEGA A POSIÇÃO DA MEMÓRIA E LIMPA A NAVE. DEPOIS DE UM TEMPO ESCREVE ELA DENOVO EM STARTINGX;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 MATA_NAVE_LCD:
-	PUSH AR1
 	MOV A, PLAYERX	;;A FICA COM A POSIÇÃO x DA NAVE
 	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
-	MOV R1, A
 	CALL LIMPA_NAVE	 ;; LIMPA A NAVE DA TELA
 	MOV A, PLAYERX	;;A FICA COM A POSIÇÃO x DA NAVE
 	CALL TRADUZ_X	;;A FICA COM A POSIÇÃO X CORRETA DA NAVE, E O BIT SELECT FICA APROPRIADO
@@ -1258,7 +1313,6 @@ MATA_NAVE_LCD:
 	MOV	 A, #STARTINGX
 	CALL TRADUZ_X
 	CALL DESENHA_NAVE
-	POP AR1
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE MATA A NAVE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1549,7 +1603,7 @@ LIMPA_LINHA_SEGUINTE:
 	CALL ESCREVE_COMANDO_LCD ;;COLOCA NO Y CERTO
 	MOV A, #00H
 	CALL ESCREVE_DADO_LCD
-	MOV A, R1
+	MOV A, R1				;DEVOLVE O Y CORRETO
 	POP AR1
 	RET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FIM DA FUNÇÃO QUE LIMPA A LINHA SEGUINTE
@@ -1676,7 +1730,8 @@ TEM_QUE_MUDAR:
 		JB SELECT, NAO_MUDA
 		INC B
 		MOV A, B
-		SUBB A, #63D
+		CLR C
+		SUBB A, #64D
 		JZ MUDA_LADO_CALL
 		RET
 MUDA_LADO_CALL:
